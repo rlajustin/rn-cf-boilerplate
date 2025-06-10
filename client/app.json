@@ -1,0 +1,38 @@
+{
+  "expo": {
+    "name": "<YOUR-PROJECT-NAME>",
+    "slug": "<YOUR-PROJECT-SLUG>",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": ["**/*"],
+    "jsEngine": "hermes",
+    "icon": "./assets/images/icon.png",
+    "ios": {
+      "userInterfaceStyle": "automatic",
+      "icon": "./assets/images/icon.png",
+      "supportsTablet": true,
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "bundleIdentifier": "<YOUR-PROJECT-BUNDLE-ID>",
+      "appleTeamId": "<YOUR-APPLETEAMID>",
+      "entitlements": {
+        "com.apple.developer.devicecheck.appattest-environment": "development"
+      }
+    },
+    "plugins": [
+      "expo-dev-client",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "deploymentTarget": "15.1"
+          }
+        }
+      ],
+      "expo-secure-store"
+    ]
+  }
+}

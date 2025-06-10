@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+yarn.lock
+package-lock.json
+
+# Environment variables and secrets
+wrangler.toml
+.dev.vars
+.wrangler/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+*.log
+
+# Expo
+.expo/
+
+# IOS
+client/ios/*
+client/targets/*
+
+.vscode/*

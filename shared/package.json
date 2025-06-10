@@ -1,0 +1,13 @@
+{
+  "name": "shared",
+  "version": "0.0.1",
+  "main": "./src/index.ts",
+  "private": true,
+  "dependencies": {
+    "class-validator": "^0.14.0",
+    "reflect-metadata": "^0.1.13"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.3"
+  }
+}
