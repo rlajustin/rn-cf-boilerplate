@@ -5,12 +5,14 @@
   "workspaces": [
     "client",
     "backend",
+    "web",
     "shared"
   ],
   "scripts": {
     "postinstall": "patch-package",
     "client": "cd client && npm run",
     "backend": "cd backend && npm run",
+    "web": "cd web && npm run",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
     "version:major": "npm version major",
