@@ -1,7 +1,7 @@
 import "../global.css";
 import { Stack } from "expo-router";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { ThemeProvider, AuthProvider } from "@/client/contexts";
+import { ThemeProvider, AuthProvider } from "contexts";
 import { verifyInstallation } from "nativewind";
 
 function ThemedLayout() {

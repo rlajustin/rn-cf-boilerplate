@@ -10,5 +10,5 @@ export type BaseEndpoint<M extends HttpMethod> = {
   body: M extends "get" ? undefined : BaseDto;
   response: object;
   query: M extends "get" ? Record<string, string> : undefined;
-  authenticate: boolean;
+  authenticate: boolean; // this is only used in the frontend, backend must authenticate by using middleware
 };

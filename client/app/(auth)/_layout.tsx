@@ -1,5 +1,5 @@
 import { Stack } from "expo-router";
-import { AuthState, useAuth } from "@/client/contexts/AuthContext";
+import { AuthState, useAuth } from "contexts/AuthContext";
 import { useEffect } from "react";
 import { router } from "expo-router";
 
@@ -7,13 +7,9 @@ export default function AuthLayout() {
   const { authState, isLoading, email } = useAuth();
 
   useEffect(() => {
-    if (!isLoading && authState === AuthState.SignedIn) {
+    if (isLoading || !email) return;
+    if (authState !== AuthState.SignedOut) {
       router.replace("/");
-    } else if (!isLoading && authState === AuthState.SignedInButNotVerified) {
-      router.push({
-        pathname: "/verify",
-        params: { email },
-      });
     }
   }, [authState, isLoading, email]);
 
@@ -39,7 +35,7 @@ export default function AuthLayout() {
         }}
       />
       <Stack.Screen
-        name="verify"
+        name="reset"
         options={{
           animation: "slide_from_right",
         }}

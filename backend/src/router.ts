@@ -4,9 +4,8 @@ import { logger } from "hono/logger";
 import { rateLimiter } from "hono-rate-limiter";
 import { loggerUtil, requestUtil } from "@utils";
 import { typeConfig } from "@configs";
-import { identityRoutes, appAttestRoutes, protectedRoutes } from "@routes";
+import { identityRoutes, appAttestRoutes, protectedRoutes, protectedUnverifiedRoutes } from "@routes";
 import { cors } from "hono/cors";
-import { authenticate } from "@middleware";
 import { version } from "../package.json";
 
 // Simple memory store for rate limiting
@@ -74,7 +73,7 @@ export const loadRouters = (app: Hono<typeConfig.Context>) => {
   app.use(async (c, next) => {
     const { ENVIRONMENT } = env(c);
     return cors({
-      origin: ENVIRONMENT === "local" ? "http://localhost:8081" : "*",
+      origin: ENVIRONMENT === "local" ? ["http://localhost:3000", "http://127.0.0.1:3000"] : "*",
       allowHeaders: [
         "Content-Type",
         "Authorization",
@@ -90,6 +89,8 @@ export const loadRouters = (app: Hono<typeConfig.Context>) => {
 
   app.route("/api", identityRoutes);
   app.route("/api", appAttestRoutes);
+  app.route("/api", protectedUnverifiedRoutes);
+  app.route("/api", protectedRoutes);
 
   if (process.env.ENVIRONMENT !== "prod") {
     app.get("/", (c) => c.redirect("/debug"));
@@ -318,8 +319,6 @@ export const loadRouters = (app: Hono<typeConfig.Context>) => {
       });
     });
   }
-
-  app.route("/api", protectedRoutes);
 
   return app;
 };

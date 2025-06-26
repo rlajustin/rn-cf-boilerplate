@@ -2,7 +2,7 @@ import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { normalizeEmail } from "../../utils";
 import { BaseEndpoint, BaseDto } from "../../types";
 
-export class RegisterAccountDto extends BaseDto {
+class RegisterAccountDto extends BaseDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;

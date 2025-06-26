@@ -2,38 +2,35 @@ import { Context, Next } from "hono";
 import { HTTPException } from "hono/http-exception";
 import { getCookie, setCookie } from "hono/cookie";
 import { env } from "hono/adapter";
-import { verifyToken, revokeToken } from "@services/jwt";
 import { errorConfig, typeConfig } from "@configs";
-import { kvService } from "@services";
+import { kvService, jwtService } from "@services";
 import { cryptoUtil } from "@utils";
 import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
+import { HandlerFunction } from "@routes/utils";
 
 const AUTH_COOKIE_NAME = "auth_token";
 const BEARER_PREFIX = "Bearer ";
-
-export interface AuthContext extends Context {
-  user: typeConfig.AccessTokenBody;
-}
 
 /**
  * Sets the JWT token as an HTTP-only cookie for web clients
  * or returns it in the response body for mobile clients
  */
-export const setAuthToken = (c: Context, token: string) => {
+export const setAuthToken = (c: Context, token: string): Awaited<ReturnType<HandlerFunction<"LOGIN">>> => {
   const platform = c.req.header("x-platform");
   const isMobile = platform === "mobile";
 
-  // Parse token to get expiration
-  const tokenData = JSON.parse(Buffer.from(token.split(".")[1], "base64").toString());
+  // Safely extract expiration from token
+  const expiration = jwtService.getTokenExpiration(token);
+  const { scope } = jwtService.decodeToken(token);
 
   if (isMobile) {
     return {
       success: true,
       data: {
-        access_token: token,
-        token_type: "Bearer",
-        expires: tokenData.exp,
+        accessToken: token,
+        scope,
+        expires: expiration,
       },
     };
   }
@@ -44,13 +41,14 @@ export const setAuthToken = (c: Context, token: string) => {
     secure: true,
     sameSite: "Lax",
     path: "/",
-    maxAge: Math.ceil(tokenData.exp - Date.now() / 1000),
+    maxAge: Math.ceil(expiration - Date.now() / 1000),
   });
 
   return {
     success: true,
     data: {
-      expires: tokenData.exp,
+      scope,
+      expires: expiration,
     },
   };
 };
@@ -73,97 +71,62 @@ export const clearAuthToken = async (c: Context<typeConfig.Context>) => {
 
   // If there was a token, revoke it
   if (token) {
-    await revokeToken(c, token);
+    await jwtService.revokeToken(c, token);
   }
 };
 
-/**
- * Authentication middleware that verifies JWT tokens from either:
- * - HTTP-only cookie (web clients)
- * - Authorization Bearer header (mobile clients)
- */
-export const authenticate = async (c: Context<typeConfig.Context>, next: Next) => {
-  try {
-    const { JWT_SECRET } = env(c);
-    if (!JWT_SECRET) {
-      throw new Error("JWT_SECRET is not configured");
-    }
+export const getAuthMiddleware = (requireUserVerified: boolean) => {
+  const authenticate = async (c: Context<typeConfig.Context>, next: Next) => {
+    try {
+      const { JWT_SECRET } = env(c);
+      if (!JWT_SECRET) {
+        throw new Error("JWT_SECRET is not configured");
+      }
 
-    let token: string | undefined;
+      let token: string | undefined;
 
-    // Check Authorization header first (mobile)
-    const authHeader = c.req.header("Authorization");
-    if (authHeader?.startsWith(BEARER_PREFIX)) {
-      token = authHeader.slice(BEARER_PREFIX.length);
-    }
+      // Check Authorization header first (mobile)
+      const authHeader = c.req.header("Authorization");
+      if (authHeader?.startsWith(BEARER_PREFIX)) {
+        token = authHeader.slice(BEARER_PREFIX.length);
+      }
 
-    // If no Authorization header, check for cookie (web)
-    if (!token) {
-      token = getCookie(c, AUTH_COOKIE_NAME);
-    }
+      // If no Authorization header, check for cookie (web)
+      if (!token) {
+        token = getCookie(c, AUTH_COOKIE_NAME);
+      }
 
-    if (!token) {
-      throw new errorConfig.Unauthorized("Authentication required");
-    }
+      if (!token) {
+        throw new errorConfig.Unauthorized("Authentication required");
+      }
 
-    // Verify and decode the token, including revocation check
-    const payload: typeConfig.AccessTokenBody = await verifyToken(JWT_SECRET, token, c);
-    if (payload.scope === "unverified") {
-      throw new errorConfig.Unauthorized("Unverified user");
-    }
-    if (!payload.exp || payload.exp < Math.floor(Date.now() / 1000)) {
-      throw new errorConfig.Unauthorized("Token expired");
-    }
-    payload.sub = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
-    payload.email = cryptoUtil.decryptString(payload.email, JWT_SECRET);
-    // Add user data to context
-    c.set("access_token_body", payload);
+      // Verify and decode the token, including revocation check
+      const payload: typeConfig.AccessTokenBody = await jwtService.verifyToken(JWT_SECRET, token, c);
 
-    await next();
-  } catch (error) {
-    if (error instanceof HTTPException) {
-      throw error;
-    }
-    throw new errorConfig.Unauthorized("Invalid authentication token");
-  }
-};
+      // Check if user verification is required
+      if (requireUserVerified && payload.scope === "unverified") {
+        throw new errorConfig.Unauthorized("Unverified user");
+      }
 
-/**
- * Optional authentication middleware that doesn't require authentication
- * but will still verify and decode the token if present
- */
-export const optionalAuthenticate = async (c: Context, next: Next) => {
-  try {
-    const { JWT_SECRET } = env(c);
-    if (!JWT_SECRET) {
+      // Decrypt sensitive data
+      try {
+        payload.sub = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
+      } catch (decryptError) {
+        throw new errorConfig.Unauthorized("Invalid token data");
+      }
+
+      // Add user data to context
+      c.set("access_token_body", payload);
+
       await next();
-      return;
+    } catch (error) {
+      if (error instanceof HTTPException) {
+        throw error;
+      }
+      throw new errorConfig.Unauthorized("Invalid authentication token");
     }
-
-    let token: string | undefined;
-
-    const authHeader = c.req.header("Authorization");
-    if (authHeader?.startsWith(BEARER_PREFIX)) {
-      token = authHeader.slice(BEARER_PREFIX.length);
-    }
-
-    if (!token) {
-      token = getCookie(c, AUTH_COOKIE_NAME);
-    }
-
-    if (!token) {
-      await next();
-      return;
-    }
-
-    const payload = await verifyToken(JWT_SECRET, token);
-    (c as AuthContext).user = payload;
-
-    await next();
-  } catch (error) {
-    // If token verification fails, continue without user data
-    await next();
-  }
+  };
+  return authenticate;
 };
 
 // Middleware function that Routers can use to check the integrity of the client

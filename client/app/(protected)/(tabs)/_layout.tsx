@@ -3,7 +3,7 @@ import React from "react";
 import { Platform } from "react-native";
 import { HapticTab } from "@/client/shared-components/HapticTab";
 import TabBarBackground from "@/client/shared-components/ui/TabBarBackground";
-import { useTheme } from "@/client/contexts";
+import { useTheme } from "contexts";
 
 export default function TabsLayout() {
   const { theme } = useTheme();

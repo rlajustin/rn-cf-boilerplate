@@ -4,9 +4,18 @@ import { Context } from "hono";
 
 const REVOKED_TOKENS_PREFIX = "revoked_token:";
 
+export const decodeToken = (token: string): typeConfig.AccessTokenBody => {
+  return jose.decodeJwt(token) as typeConfig.AccessTokenBody;
+};
+
 export const signToken = async (secret: string, payload: typeConfig.AccessTokenBody): Promise<string> => {
   const key = new TextEncoder().encode(secret);
 
+  return await new jose.SignJWT(payload).setProtectedHeader({ alg: "HS256" }).sign(key);
+};
+
+export const signGenericToken = async (secret: string, payload: Record<string, unknown>): Promise<string> => {
+  const key = new TextEncoder().encode(secret);
   return await new jose.SignJWT(payload).setProtectedHeader({ alg: "HS256" }).sign(key);
 };
 
@@ -42,5 +51,21 @@ export const revokeToken = async (c: Context<typeConfig.Context>, token: string)
   const ttl = exp - Math.floor(Date.now() / 1000);
   if (ttl > 0) {
     await c.env.KV.put(`${REVOKED_TOKENS_PREFIX}${token}`, "revoked", { expirationTtl: ttl });
+  }
+};
+
+/**
+ * Safely extracts expiration from JWT token without verification
+ * This is safe because we're only reading the payload, not trusting it
+ */
+export const getTokenExpiration = (token: string): number => {
+  try {
+    const decoded = jose.decodeJwt(token);
+    if (!decoded.exp || typeof decoded.exp !== "number") {
+      throw new Error("Token has no valid expiration");
+    }
+    return decoded.exp;
+  } catch (error) {
+    throw new Error("Invalid token format");
   }
 };

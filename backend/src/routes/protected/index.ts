@@ -1,12 +1,15 @@
 import { Hono } from "hono";
 import { typeConfig } from "@configs";
-import exampleRoutes from "./example";
-import { authenticate } from "@middleware";
+import { getAuthMiddleware } from "@middleware";
+
+import { ExampleRoute } from "./example";
+import { mountRoutes } from "@routes/utils";
 
 const protectedRoutes = new Hono<typeConfig.Context>();
-protectedRoutes.use("*", authenticate);
+protectedRoutes.use("*", getAuthMiddleware(true));
 
-protectedRoutes.route("/", exampleRoutes);
-// add more routes here
+const routes = [ExampleRoute];
+
+mountRoutes(routes, protectedRoutes);
 
 export default protectedRoutes;

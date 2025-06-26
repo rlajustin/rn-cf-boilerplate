@@ -4,21 +4,15 @@ import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { kvService } from "@services";
 import { HandlerFunction, Route } from "@routes/utils";
+import { authUtil } from "@utils";
 
 const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
   const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
   const kv = c.env.KV;
   const userTable = userSchema.users;
+  const authenticatedUser = authUtil.getAuthenticatedUser(c);
 
-  const user = await db.query.users.findFirst({
-    where: eq(userTable.email, dto.email),
-  });
-
-  if (!user) {
-    throw new errorConfig.Unauthorized("Invalid email verification code");
-  }
-
-  const code = await kvService.getEmailVerificationCode(kv, user.userId);
+  const code = await kvService.getEmailVerificationCode(kv, authenticatedUser.sub);
   if (!code) {
     throw new errorConfig.Unauthorized("Invalid email verification code");
   }
@@ -32,9 +26,9 @@ const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
     .set({
       isEmailVerified: true,
     })
-    .where(eq(userTable.userId, user.userId));
+    .where(eq(userTable.userId, authenticatedUser.sub));
 
-  await kvService.deleteEmailVerificationCode(kv, user.userId);
+  await kvService.deleteEmailVerificationCode(kv, authenticatedUser.sub);
 
   return { success: true, message: "Email verified successfully" };
 };

@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, TextInput, TouchableOpacity, Text } from "react-native";
-import { useTheme, useAuth } from "@/client/contexts";
+import { useTheme, useAuth } from "contexts";
 import { apiClient } from "utils/ApiClient";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,9 +8,20 @@ import { Ionicons } from "@expo/vector-icons";
 export default function EmailVerification() {
   const { email } = useLocalSearchParams<{ email: string }>();
   const [code, setCode] = useState("");
+  const [resendCountdown, setResendCountdown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+  const [resendMessage, setResendMessage] = useState("");
   const { isLoading, signOut } = useAuth();
   const abortController = new AbortController();
   const { theme } = useTheme();
+
+  // Countdown timer for resend button
+  useEffect(() => {
+    if (resendCountdown > 0) {
+      const timer = setTimeout(() => setResendCountdown(resendCountdown - 1), 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [resendCountdown]);
 
   const handleSubmit = async () => {
     if (!email || code.length !== 6) return;
@@ -20,7 +31,6 @@ export default function EmailVerification() {
         endpointName: "VERIFY_EMAIL",
         signal: abortController.signal,
         body: {
-          email,
           code,
         },
       });
@@ -30,6 +40,30 @@ export default function EmailVerification() {
       }
     } catch (error) {
       console.error("OTP verification failed:", error);
+    }
+  };
+
+  const handleResendCode = async () => {
+    if (resendCountdown > 0 || isResending) return;
+
+    setIsResending(true);
+    setResendMessage("");
+
+    try {
+      const response = await apiClient.post({
+        endpointName: "RESEND_VERIFY_EMAIL",
+        signal: abortController.signal,
+        body: {},
+      });
+
+      if (response.success) {
+        setResendMessage("Verification code sent successfully!");
+        setResendCountdown(60); // 60 second cooldown
+      }
+    } catch (error) {
+      setResendMessage(error instanceof Error ? error.message : "Failed to resend code");
+    } finally {
+      setIsResending(false);
     }
   };
 
@@ -43,7 +77,6 @@ export default function EmailVerification() {
 
   const handleBack = async () => {
     await signOut();
-    router.back();
   };
 
   if (!email) {
@@ -87,6 +120,31 @@ export default function EmailVerification() {
         >
           <Text className="text-white text-base font-semibold">Verify Code</Text>
         </TouchableOpacity>
+
+        {/* Resend Code Section */}
+        <View className="mt-8 items-center">
+          {resendMessage && (
+            <Text
+              className={`text-sm mb-4 text-center ${
+                resendMessage.includes("successfully") ? "text-green-500" : "text-red-500"
+              }`}
+            >
+              {resendMessage}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            className={`px-6 py-3 rounded-lg ${
+              resendCountdown > 0 || isResending ? "bg-secondary opacity-50" : "bg-primary"
+            }`}
+            onPress={handleResendCode}
+            disabled={resendCountdown > 0 || isResending}
+          >
+            <Text className="text-white text-base font-medium">
+              {isResending ? "Sending..." : resendCountdown > 0 ? `Resend in ${resendCountdown}s` : "Resend Code"}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
   );

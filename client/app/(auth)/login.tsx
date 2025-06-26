@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   Platform,
 } from "react-native";
-import { useAuth, useTheme } from "@/client/contexts";
+import { useAuth, useTheme } from "contexts";
 import { router } from "expo-router";
 
 export default function LoginScreen() {
@@ -39,8 +39,8 @@ export default function LoginScreen() {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <View className="flex-1 px-5 py-4 bg-background">
-        <View className="flex-1 justify-center w-full max-w-[400px] self-center">
+      <View className="flex-1 p-4 bg-background">
+        <View className="flex-1 justify-center w-full max-w-[400px]">
           <Text className="text-2xl font-bold mb-6 text-center text-primary">Welcome Back</Text>
 
           {error ? <Text className="text-[#ff4444] mb-4 text-center">{error}</Text> : null}
@@ -75,7 +75,7 @@ export default function LoginScreen() {
           />
 
           <TouchableOpacity
-            className="w-full h-12 rounded-lg justify-center items-center mt-2 bg-accent"
+            className="w-full h-12 rounded-lg justify-center items-center my-4 bg-accent"
             onPress={handleLogin}
             disabled={isLoading}
           >
@@ -85,6 +85,12 @@ export default function LoginScreen() {
               <Text className="text-white text-base font-semibold">Log In</Text>
             )}
           </TouchableOpacity>
+
+          <View className="flex-row justify-center items-center pb-5">
+            <TouchableOpacity onPress={() => router.push("/reset")}>
+              <Text className="text-sm font-semibold text-accent">Forgot Password?</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         <View className="flex-row justify-center items-center pb-5">
@@ -93,7 +99,6 @@ export default function LoginScreen() {
             <Text className="text-sm font-semibold ml-1 text-accent">Sign Up</Text>
           </TouchableOpacity>
         </View>
-
         <View className="flex-row justify-center items-center gap-2 pb-5">
           <TouchableOpacity
             onPress={() => setManualSignIn((prev) => !prev)}

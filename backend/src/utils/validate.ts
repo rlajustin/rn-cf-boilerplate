@@ -5,6 +5,6 @@ export const dto = async (dto: object) => {
   try {
     await validateOrReject(dto);
   } catch (e) {
-    throw new errorConfig.BadRequest(JSON.stringify(e));
+    throw new errorConfig.BadRequest();
   }
 };

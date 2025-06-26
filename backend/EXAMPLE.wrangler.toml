@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 
 [vars]
 ENVIRONMENT = "local"
-EMAIL_VERIFICATION_CODE_LIMIT = 3 # change this to whatever is appropriate
+EMAIL_VERIFICATION_CODE_LIMIT = 3 # number of times in 24hrs that an verification email can be sent (due to mail sender limits), change this to whatever is appropriate
 
 [[d1_databases]]
 binding = "DB"

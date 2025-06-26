@@ -57,6 +57,7 @@ class ApiClient {
 
   private async getAuthToken(): Promise<string> {
     const token = await SecureStore.getItemAsync("auth_token");
+    console.log(token);
     if (!token) {
       this.signOut?.();
       throw new Error("Unauthenticated");
@@ -81,7 +82,7 @@ class ApiClient {
       params,
       options,
       signal,
-      authenticate: "authenticate" in AllEndpoints[endpointName] ? AllEndpoints[endpointName].authenticate : false,
+      authenticate: AllEndpoints[endpointName].authenticate,
     });
   }
 
@@ -102,7 +103,7 @@ class ApiClient {
       body,
       options,
       signal,
-      authenticate: "authenticate" in AllEndpoints[endpointName] ? AllEndpoints[endpointName].authenticate : false,
+      authenticate: AllEndpoints[endpointName].authenticate,
     });
   }
 

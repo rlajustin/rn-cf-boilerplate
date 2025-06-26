@@ -1,7 +1,7 @@
 import { PropsWithChildren, useState } from "react";
 import { StyleSheet, TouchableOpacity, View, Text } from "react-native";
 import { IconSymbol } from "@/client/shared-components/ui/IconSymbol";
-import { useTheme } from "@/client/contexts/ThemeContext";
+import { useTheme } from "contexts/ThemeContext";
 
 export function Collapsible({ children, title }: PropsWithChildren & { title: string }) {
   const [isOpen, setIsOpen] = useState(false);

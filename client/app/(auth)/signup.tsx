@@ -8,7 +8,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { hashPassword, useAuth } from "@/client/contexts/AuthContext";
+import { hashPassword, useAuth } from "contexts/AuthContext";
 import { router } from "expo-router";
 import IOSAttestManager from "@/client/utils/IOSAttestManager";
 import { apiClient } from "@/client/utils/ApiClient";
@@ -68,7 +68,7 @@ export default function SignupScreen() {
         },
       });
       if (response.success) {
-        router.push({
+        router.replace({
           pathname: "/verify",
           params: { email },
         });

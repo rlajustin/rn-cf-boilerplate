@@ -1,6 +1,6 @@
 import { ScrollView, Text, TouchableOpacity } from "react-native";
 import React from "react";
-import { useTheme, useAuth } from "@/client/contexts";
+import { useTheme, useAuth } from "contexts";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { apiClient } from "../../../utils/ApiClient";

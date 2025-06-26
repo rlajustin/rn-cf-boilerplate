@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty } from "class-validator";
 import { BaseEndpoint, BaseDto } from "../../types";
 
-export class RegisterAppAttestKeyDto extends BaseDto {
+class RegisterAppAttestKeyDto extends BaseDto {
   @IsString()
   @IsNotEmpty()
   keyId: string;

@@ -28,7 +28,7 @@ function createValidatedHandler<T extends keyof typeof AllEndpoints>(
         const body = AllEndpoints[route.key].body;
         const data = await c.req.json();
         const dto = new (body as new (data: any) => InstanceType<NonNullable<(typeof AllEndpoints)[T]["body"]>>)(data);
-        await validateUtil.dto(dto);
+        if (Object.keys(dto).length > 0) await validateUtil.dto(dto);
         return c.json(await route.handler(c, dto as ExpandedRequest<T>));
       }
     },

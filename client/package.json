@@ -3,7 +3,7 @@
   "main": "index.js",
   "version": "0.0.1",
   "scripts": {
-    "start": "expo start --ip 0.0.0.0",
+    "start": "expo start",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "build:dev": "eas build --platform ios --profile development",

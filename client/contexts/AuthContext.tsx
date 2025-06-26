@@ -4,6 +4,7 @@ import { apiClient } from "@/client/utils/ApiClient";
 import { Platform } from "react-native";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { type AccessTokenBody } from "shared";
+import { setDefaultAutoSelectFamily } from "net";
 
 type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
@@ -31,18 +32,23 @@ function arrayBufferToBase64(buffer: Uint8Array): string {
   return btoa(binary);
 }
 
-async function getAuthState(token: string): Promise<AuthState> {
+async function getAuthState(token: string): Promise<{
+  authState: AuthState;
+  email: string | null;
+}> {
   const [, payload] = token.split(".");
-  const { exp, scope } = JSON.parse(atob(payload)) as AccessTokenBody;
+  const { exp, scope, email } = JSON.parse(atob(payload)) as AccessTokenBody;
+  let authState = null;
   if (exp && Date.now() / 1000 < exp) {
     if (scope && scope === "user") {
-      return AuthState.SignedIn;
+      authState = AuthState.SignedIn;
     } else {
-      return AuthState.SignedInButNotVerified;
+      authState = AuthState.SignedInButNotVerified;
     }
   } else {
-    return AuthState.SignedOut;
+    authState = AuthState.SignedOut;
   }
+  return { authState, email };
 }
 
 export function hashPassword(password: string): string {
@@ -73,14 +79,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (Platform.OS === "web") {
         setAuthState(AuthState.SignedOut);
       } else {
-        setEmail((await SecureStore.getItemAsync("email")) ?? null);
         const token = await SecureStore.getItemAsync("auth_token");
         if (!token) {
           setAuthState(AuthState.SignedOut);
           return;
         }
-        const authState = await getAuthState(token);
+        const { authState, email } = await getAuthState(token);
         setAuthState(authState);
+        setEmail(email);
       }
     } catch (error) {
       await signOut();
@@ -100,15 +106,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.log("response", response);
 
       if (Platform.OS === "ios") {
-        if (!response.success || !response.data.access_token) {
+        if (!response.success || !response.data.accessToken) {
           throw new Error("Invalid response format");
         }
-        const { access_token } = response.data;
-
-        await SecureStore.setItemAsync("auth_token", access_token);
-        await SecureStore.setItemAsync("email", email);
-        const authState = await getAuthState(access_token);
-        console.log("authState", authState);
+        const { accessToken } = response.data;
+        await SecureStore.setItemAsync("auth_token", accessToken);
+        const { authState, email } = await getAuthState(accessToken);
+        setEmail(email);
         setAuthState(authState);
       }
     } catch (error) {
@@ -119,7 +123,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   async function signOut() {
     // @dev should toast something?
     setAuthState(AuthState.SignedOut);
-    await Promise.all([SecureStore.deleteItemAsync("email"), SecureStore.deleteItemAsync("auth_token")]);
+    await SecureStore.deleteItemAsync("auth_token");
   }
   apiClient.registerSignOut(signOut);
 

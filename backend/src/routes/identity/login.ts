@@ -41,11 +41,10 @@ const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
 
   const { JWT_SECRET } = env(c);
   const encryptedUserId = cryptoUtil.encryptString(user.userId, JWT_SECRET);
-  const encryptedEmail = cryptoUtil.encryptString(user.email, JWT_SECRET);
 
   const tokenBody: typeConfig.AccessTokenBody = {
     sub: encryptedUserId,
-    email: encryptedEmail,
+    email: user.email,
     scope: user.isEmailVerified ? "user" : "unverified",
     iat: now,
     exp: expiresOn,

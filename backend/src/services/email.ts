@@ -87,7 +87,7 @@ export const sendEmailAuthorizationCode = async (c: Context<typeConfig.Context>,
   const content = `Your one-time verification code is: ${mfaCode}. This code will expire in 24 hours.`;
 
   try {
-    const res = await sendEmail(c, email, "Email Verification Code", content);
+    const res = await sendEmail(c, email, "[<YOUR-APP-NAME>] Email Verification Code", content);
 
     return res ? mfaCode : null;
   } catch (error) {
@@ -124,4 +124,17 @@ export const handleSendEmailVerificationCode = async (
   } catch (error) {
     throw new errorConfig.InternalServerError((error as Error).message);
   }
+};
+
+export const sendPasswordResetEmail = async (
+  c: Context<typeConfig.Context>,
+  user: { email: string },
+  token: string
+) => {
+  checkEmailSetup(c);
+  // You should customize the reset URL for your frontend
+  const resetUrl = `http://localhost:3000/reset-password/confirm?token=${encodeURIComponent(token)}`;
+  const subject = "[<YOUR-APP-NAME>] Password Reset Request";
+  const text = `You requested a password reset. Use this link to reset your password: ${resetUrl}\nIf you did not request this, please ignore this email. The link will expire in 24 hours.`;
+  await sendEmail(c, user.email, subject, text);
 };

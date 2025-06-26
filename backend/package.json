@@ -5,9 +5,9 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "wrangler dev --ip 0.0.0.0",
+    "generate": "drizzle-kit generate",
     "preview:update_secrets": "wrangler secret bulk .dev.vars --env preview",
     "prod:update_secrets": "wrangler secret bulk .dev.vars --env prod",
-    "generate": "drizzle-kit generate",
     "local:migrate": "npm run generate && wrangler d1 migrations apply boilerplate-db-local --local",
     "local:deploy": "npm run local:migrate && npm run dev",
     "preview:migrate": "npm run generate && wrangler d1 migrations apply $(node -e \"console.log(require('../package.json').name)\")-db-preview --env preview --remote",

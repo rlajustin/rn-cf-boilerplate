@@ -2,7 +2,7 @@ import { IsEmail, IsNotEmpty, IsNumber, IsString } from "class-validator";
 import { BaseEndpoint, BaseDto } from "../../types";
 import { normalizeEmail } from "../../utils";
 
-export class ExampleDto extends BaseDto {
+class ExampleDto extends BaseDto {
   @IsString()
   @IsNotEmpty()
   exampleData1: string;

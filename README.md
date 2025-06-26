@@ -2,25 +2,29 @@
 
 #### TODO
 
-- add email verification code attempts logic
-- implement password reset
-- look at the auth flow and make sure it's like reasonably secure lol
-  - describe security parameters in the readme
-- more verbose setup in readme
-- describe all features, i.e. email verification, pw reset, auth flow/how to use auth, etc.
-- build using external database service
+- [x] add email verification code attempts logic
+- [x] implement password reset
+- [x] webapp with at least auth (login) and pw reset
+- [x] dont encrypt email in access token that's sort of silly
+- [ ] look at the auth again and make sure it's like reasonably secure lol (ip rate limits? ddos protection? make a better rate limiter)
+- [ ] README stuff
+  - [ ] describe security parameters in the readme
+  - [ ] more verbose setup in readme (include prerequisites)
+  - [ ] describe all features, i.e. email verification, pw reset, app attest, auth flow/how to use auth, etc.
+- [ ] build using external database service, integrate using hyperdrive or smth
+- [ ] change email? delete account?
 
 ##### \*\*This repository can be used in its current state, but many features are still incomplete/unsafe.
 
 ## Contents
 
 1. [Introduction](#introduction)
-   1.1 [What is React Native](#what-is-react-native)
-   1.2 [What is Cloudflare](#what-is-cloudflare)
-   1.3 [AI isn't super good at building this](#AI-isn't-super-good-at-building-this)
+   - [What is React Native](#what-is-react-native)
+   - [What is Cloudflare](#what-is-cloudflare)
+   - [AI isn't super good at building this](#AI-isn't-super-good-at-building-this)
 2. [Features](#features)
-   2.1 [End-to-end Type Safety](#end-to-end-type-safety)
-   2.2 [Simple(ish) Deployment](#simpleish-deployment)
+   - [End-to-end Type Safety](#end-to-end-type-safety)
+   - [Simple(ish) Deployment](#simpleish-deployment)
 3. [Getting Started](#getting-started)
 
 ## Introduction
@@ -33,13 +37,13 @@ If your app gets a substantial userbase, first I would like a cut of your profit
 
 ##### What is React Native
 
-React native has two parts: the react part and the native part. The goal with this repository is so that you have to write as little "native" code as possible, which in the case of an IOS app is written in swift and objective C and stuff idk. Basically, a RN app is built on top of native code that has obj-c "bridges" which interface the react-like code with the actual native code that runs on the phone itself. React native is a framework in the same sense that React is, i.e. it isn't and it's pretty inconvenient to write a raw RN app (or so I'm told), so we instead use the **Expo** which uses file-based routing, read more here [insertlink].
+React native has two parts: the react part and the native part. The goal with this repository is so that you have to write as little "native" code as possible, which in the case of an IOS app is written in swift and objective C and stuff idk. Basically, a RN app is built on top of native code that has obj-c "bridges" which interface the react-like code with the actual native code that runs on the phone itself. React native is a framework in the same sense that React is, i.e. it isn't and it's pretty inconvenient to write a raw RN app (or so I'm told), so we instead use the **Expo** which uses file-based routing, read more [here](https://docs.expo.dev/develop/file-based-routing/).
 
 ##### What is Cloudflare
 
-We use it to host the backend because it has a relatively cheap free tier. [insertlink]
+We use it to host the backend because it has a relatively cheap free tier. When this is deployed, rather than a centralized server, cloudflare has a globally distributed network that ensures assets are always close to the user. For a lot of applications though I would still recommend having a centralized DB, so the actual benefit of this distributed network may vary.
 
-##### AI isn't super good at building this
+##### AI isn't normally good at building these types of apps
 
 It's important to know that **AI has a poor understanding of React Native**, and you will inevitably encounter bugs that it simply cannot solve due to the limited documentation available.
 
@@ -77,7 +81,7 @@ You should grep this repo for "YOUR-". You will need to replace all of these.
 
 ##### Prerequisites
 
-You should have a macOS machine with XCode and Node.js installed.
+You should have a macOS machine with XCode and Node.js installed. You need to have [homebrew](https://brew.sh/) as well.
 
 ##### Building to IOS
 
@@ -98,3 +102,7 @@ First, you will need to create a free cloudflare account. Then, in order to run 
 In order to register an account (at least without changing some stuff), we need to set up the mail service. There are 6 SMTP variables in `.dev.vars` that you will need to fill out. I would recommend creating a free [Brevo](https://app.brevo.com/) account, they have a somewhat generous free plan that lets you send 300 emails each month. If you scale really big, I would look into self-hosting your email service, probably with [Mail in a Box](https://mailinabox.email/), but you don't need to worry about that. Once you have Brevo account, go to the "SMTP & API" tab and get the necessary credentials to fill in. SMTP_PASSWORD is the API key, and the sender name can be whatever you want. You will also need to generate a JWT secret with the command `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`. Put this output into `.dev.vars`.
 
 ##### Start building stuff idk
+
+#### Acknowledgements
+
+- Much of the backend structure was (initially) built on top of [Melody Auth](https://github.com/ValueMelody/melody-auth), which has many additional features that I stripped away. I would recommend using this as a resource if you want to add more features to the auth flow.

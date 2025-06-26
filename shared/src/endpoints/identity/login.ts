@@ -1,8 +1,9 @@
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { normalizeEmail } from "../../utils";
 import { BaseEndpoint, BaseDto } from "../../types";
+import { AccessTokenBody } from "src";
 
-export class LoginDto extends BaseDto {
+class LoginDto extends BaseDto {
   @IsEmail()
   @IsNotEmpty()
   email: string;
@@ -22,8 +23,8 @@ type LoginResponse = {
   success: boolean;
   data: {
     expires: number;
-    access_token?: string;
-    token_type?: string;
+    scope: "unverified" | "user" | "admin";
+    accessToken?: string;
   };
 };
 
