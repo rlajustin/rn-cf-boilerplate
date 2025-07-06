@@ -2,13 +2,14 @@ import { errorConfig } from "@configs";
 import { userSchema } from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { emailService, jwtService } from "@services";
+import { emailService, jwtService, kvService } from "@services";
 import { HandlerFunction, Route } from "@routes/utils";
 import { EmailValidator } from "@utils/email-validator";
 import { cryptoUtil } from "@utils";
 import { env } from "hono/adapter";
 
 const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = async (c, dto) => {
+  const { KV } = env(c);
   const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
   const userTable = userSchema.users;
 
@@ -25,8 +26,13 @@ const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = asyn
     where: eq(userTable.email, dto.email),
   });
 
-  // Always return success is good practice probably
   if (user) {
+    // Always return success is good practice probably
+    const kvRequests = await kvService.getPasswordResetAttempts(KV, dto.email);
+    if (kvRequests > 3) {
+      throw new errorConfig.BadRequest("Try again in 24 hours.");
+    }
+    await kvService.setPasswordResetAttempts(KV, dto.email, kvRequests + 1);
     // Generate a JWT token for password reset (expires in 24 hours)
     const { JWT_SECRET } = env(c);
     const encryptedUserId = cryptoUtil.encryptString(user.userId, JWT_SECRET);

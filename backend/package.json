@@ -17,7 +17,6 @@
     "db:studio": "LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -exec ls -t {} + | head -n1) drizzle-kit studio"
   },
   "dependencies": {
-    "@cloudflare/workers-types": "latest",
     "@hono-rate-limiter/cloudflare": "^0.2.2",
     "@simplewebauthn/server": "^13.1.1",
     "@simplewebauthn/types": "^12.0.0",
@@ -40,6 +39,7 @@
     "shared": "*"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "latest",
     "@types/node-fetch": "^2.6.11",
     "@types/nodemailer": "^6.4.17",
     "dotenv": "^16.5.0",

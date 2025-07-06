@@ -4,6 +4,7 @@
 
 - [x] add email verification code attempts logic
 - [x] implement password reset
+  - [x] limit number of reset emails
 - [x] webapp with at least auth (login) and pw reset
 - [x] dont encrypt email in access token that's sort of silly
 - [ ] look at the auth again and make sure it's like reasonably secure lol (ip rate limits? ddos protection? make a better rate limiter)

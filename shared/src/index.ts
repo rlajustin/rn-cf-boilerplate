@@ -12,6 +12,16 @@ export const AllEndpoints = {
   ...ProtectedUnverifiedEndpoints,
 };
 
+export type PostEndpointsKeys = keyof typeof AllEndpoints &
+  {
+    [K in keyof typeof AllEndpoints]: (typeof AllEndpoints)[K]["method"] extends "post" ? K : never;
+  }[keyof typeof AllEndpoints];
+
+export type GetEndpointsKeys = keyof typeof AllEndpoints &
+  {
+    [K in keyof typeof AllEndpoints]: (typeof AllEndpoints)[K]["method"] extends "get" ? K : never;
+  }[keyof typeof AllEndpoints];
+
 export interface AccessTokenBody {
   sub: string;
   email: string;

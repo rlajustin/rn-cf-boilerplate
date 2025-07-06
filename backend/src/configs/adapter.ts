@@ -12,7 +12,6 @@ export enum BaseKVKey {
   ChangeEmailCodeAttempts = "CEA",
   PasswordResetCode = "PRC",
   PasswordResetCodeAttempts = "PRCA",
-  FailedLoginAttempts = "FLA",
   AttestationNonce = "AN",
   AppAttestKey = "AAK",
 }

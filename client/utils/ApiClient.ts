@@ -107,7 +107,7 @@ class ApiClient {
     });
   }
 
-  async apiCall<T extends keyof typeof AllEndpoints>({
+  private async apiCall<T extends keyof typeof AllEndpoints>({
     route,
     method,
     params,

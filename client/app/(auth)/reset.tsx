@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { router } from "expo-router";
-import { useAuth, useTheme } from "contexts";
+import { useTheme } from "contexts";
 import { apiClient } from "@/client/utils/ApiClient";
 import { Ionicons } from "@expo/vector-icons";
 
@@ -19,7 +19,7 @@ export default function PasswordResetScreen() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
-  const { signOut } = useAuth();
+  const abortController = new AbortController();
 
   const handleReset = async () => {
     if (!email) {
@@ -30,11 +30,10 @@ export default function PasswordResetScreen() {
     setError("");
     setMessage("");
     try {
-      await apiClient.apiCall({
-        route: "/password-reset/request",
-        method: "POST",
+      await apiClient.post({
+        endpointName: "PASSWORD_RESET_REQUEST",
+        signal: abortController.signal,
         body: { email },
-        authenticate: false,
       });
       setMessage("If the email exists, a reset link will be sent.");
     } catch (err) {

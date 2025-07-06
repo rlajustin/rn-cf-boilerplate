@@ -4,7 +4,6 @@ import { apiClient } from "@/client/utils/ApiClient";
 import { Platform } from "react-native";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { type AccessTokenBody } from "shared";
-import { setDefaultAutoSelectFamily } from "net";
 
 type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;

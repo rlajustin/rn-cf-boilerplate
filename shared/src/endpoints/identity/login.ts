@@ -1,7 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { normalizeEmail } from "../../utils";
 import { BaseEndpoint, BaseDto } from "../../types";
-import { AccessTokenBody } from "src";
 
 class LoginDto extends BaseDto {
   @IsEmail()

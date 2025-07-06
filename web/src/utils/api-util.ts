@@ -1,7 +1,7 @@
 import axios, { AxiosRequestConfig } from "axios";
-import { AllEndpoints } from "shared";
+import { AllEndpoints, GetEndpointsKeys, PostEndpointsKeys } from "shared";
 
-const LOCAL_DEV_URL = "http://127.0.0.1:8787/api";
+const LOCAL_DEV_URL = "http://localhost:8787/api";
 
 async function apiCall<T extends keyof typeof AllEndpoints>(
   endpointName: T,
@@ -52,7 +52,7 @@ async function apiCall<T extends keyof typeof AllEndpoints>(
 }
 
 export const apiClient = {
-  get<T extends keyof typeof AllEndpoints>(
+  get<T extends GetEndpointsKeys>(
     endpointName: T,
     signal: AbortSignal,
     params?: (typeof AllEndpoints)[T]["query"],
@@ -60,7 +60,7 @@ export const apiClient = {
   ) {
     return apiCall(endpointName, { params, config, signal });
   },
-  post<T extends keyof typeof AllEndpoints>(
+  post<T extends PostEndpointsKeys>(
     endpointName: T,
     signal: AbortSignal,
     body?: InstanceType<NonNullable<(typeof AllEndpoints)[T]["body"]>>,

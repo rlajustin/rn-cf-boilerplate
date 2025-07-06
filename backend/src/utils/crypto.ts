@@ -1,6 +1,4 @@
-import bcrypt from "bcryptjs";
 import base32Encode from "base32-encode";
-import base32Decode from "base32-decode";
 import { createHash, createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
 export async function getSHA256(data: Buffer): Promise<Buffer> {

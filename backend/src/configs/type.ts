@@ -7,6 +7,7 @@ export type { AccessTokenBody };
 export type Bindings = {
   DB: D1Database;
   KV: KVNamespace;
+  RATE_LIMITER: DurableObjectNamespace;
   ENVIRONMENT: string;
   LOG_LEVEL: string;
   SMTP_HOST: string;
