@@ -9,18 +9,19 @@ async function apiCall<T extends keyof typeof AllEndpoints>(
     params?: (typeof AllEndpoints)[T]["query"];
     body?: InstanceType<NonNullable<(typeof AllEndpoints)[T]["body"]>>;
     config?: AxiosRequestConfig;
-    authenticate?: (typeof AllEndpoints)[T]["authenticate"];
     signal?: AbortSignal;
   }
 ): Promise<(typeof AllEndpoints)[T]["response"]> {
   const endpoint = AllEndpoints[endpointName];
   const url = `${LOCAL_DEV_URL}${endpoint.path}`;
-  const { params, body, config, authenticate = false, signal } = options || {};
+  const { params, body, config, signal } = options || {};
+  const authenticate = AllEndpoints[endpointName].authenticate;
+  const needsCredentials = authenticate || endpointName === "LOGIN";
   try {
     if (endpoint.method === "get") {
       const res = await axios.get(url, {
         params,
-        withCredentials: authenticate,
+        withCredentials: needsCredentials,
         signal,
         headers: {
           Accept: "application/json",
@@ -31,7 +32,7 @@ async function apiCall<T extends keyof typeof AllEndpoints>(
       return res.data;
     } else {
       const res = await axios.post(url, body, {
-        withCredentials: authenticate,
+        withCredentials: needsCredentials,
         signal,
         headers: {
           "Content-Type": "application/json",

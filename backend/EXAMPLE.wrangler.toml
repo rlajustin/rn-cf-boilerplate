@@ -3,6 +3,18 @@ main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+[[unsafe.bindings]]
+name = "AUTHED_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1001"
+simple = { limit = 150, period = 60 }
+
+[[unsafe.bindings]]
+name = "BASE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1002"
+simple = { limit = 15, period = 10 }
+
 [vars]
 ENVIRONMENT = "local"
 EMAIL_VERIFICATION_CODE_LIMIT = 3 # number of times in 24hrs that an verification email can be sent (due to mail sender limits), change this to whatever is appropriate
@@ -16,6 +28,20 @@ database_id = "asdf"
 [[kv_namespaces]]
 binding = "KV"
 id = ""
+
+###### PREVIEW
+
+[[env.preview.unsafe.bindings]]
+name = "AUTHED_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1011"
+simple = { limit = 150, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "BASE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1012"
+simple = { limit = 15, period = 10 }
 
 [env.preview]
 name = "<YOUR-PREVIEW-API-NAME>"
@@ -35,6 +61,21 @@ LOG_LEVEL = "silent"
 [[env.preview.kv_namespaces]]
 binding = "KV"
 id = "<YOUR-PREVIEW-KV-ID>"
+
+
+###### PROD
+
+[[env.prod.unsafe.bindings]]
+name = "AUTHED_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1021"
+simple = { limit = 150, period = 60 }
+
+[[env.prod.unsafe.bindings]]
+name = "BASE_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1022"
+simple = { limit = 15, period = 10 }
 
 [env.prod]
 name = "<YOUR-PROD-API-NAME>"

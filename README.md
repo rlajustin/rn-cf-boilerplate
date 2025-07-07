@@ -7,7 +7,7 @@
   - [x] limit number of reset emails
 - [x] webapp with at least auth (login) and pw reset
 - [x] dont encrypt email in access token that's sort of silly
-- [ ] look at the auth again and make sure it's like reasonably secure lol (ip rate limits? ddos protection? make a better rate limiter)
+- [x] look at the auth again and make sure it's like reasonably secure lol (ip rate limits? ddos protection? make a better rate limiter)
 - [ ] README stuff
   - [ ] describe security parameters in the readme
   - [ ] more verbose setup in readme (include prerequisites)

@@ -26,6 +26,12 @@ export class NotFound {
   }
 }
 
+export class TooManyRequests {
+  constructor(message?: string) {
+    return new HTTPException(429, getOption(message));
+  }
+}
+
 export class InternalServerError {
   constructor(message?: string) {
     return new HTTPException(500, getOption(message));

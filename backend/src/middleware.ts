@@ -1,130 +1,92 @@
 import { Context, Next } from "hono";
-import { HTTPException } from "hono/http-exception";
-import { getCookie, setCookie } from "hono/cookie";
+import { getCookie } from "hono/cookie";
 import { env } from "hono/adapter";
 import { errorConfig, typeConfig } from "@configs";
 import { kvService, jwtService } from "@services";
-import { cryptoUtil } from "@utils";
+import { cryptoUtil, authUtil, requestUtil } from "@utils";
 import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
-import { HandlerFunction } from "@routes/utils";
+import { WeightRange } from "shared/src/types";
+import { AllEndpoints } from "shared";
 
-const AUTH_COOKIE_NAME = "auth_token";
 const BEARER_PREFIX = "Bearer ";
 
-/**
- * Sets the JWT token as an HTTP-only cookie for web clients
- * or returns it in the response body for mobile clients
- */
-export const setAuthToken = (c: Context, token: string): Awaited<ReturnType<HandlerFunction<"LOGIN">>> => {
-  const platform = c.req.header("x-platform");
-  const isMobile = platform === "mobile";
+type KeyFunction = (c: Context<typeConfig.Context>) => string;
 
-  // Safely extract expiration from token
-  const expiration = jwtService.getTokenExpiration(token);
-  const { scope } = jwtService.decodeToken(token);
-
-  if (isMobile) {
-    return {
-      success: true,
-      data: {
-        accessToken: token,
-        scope,
-        expires: expiration,
-      },
-    };
-  }
-
-  // For web clients, set HTTP-only cookie
-  setCookie(c, AUTH_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-    path: "/",
-    maxAge: Math.ceil(expiration - Date.now() / 1000),
-  });
-
-  return {
-    success: true,
-    data: {
-      scope,
-      expires: expiration,
-    },
-  };
+const baseKeyFunc: KeyFunction = (c) => {
+  const ip = requestUtil.getRequestIP(c);
+  if (!ip) throw new errorConfig.Forbidden();
+  return ip;
 };
 
-/**
- * Removes the authentication token and revokes it
- */
-export const clearAuthToken = async (c: Context<typeConfig.Context>) => {
-  // Get the token before clearing it
-  const token = getCookie(c, AUTH_COOKIE_NAME);
-
-  // Clear the cookie
-  setCookie(c, AUTH_COOKIE_NAME, "", {
-    httpOnly: true,
-    secure: true,
-    sameSite: "Lax",
-    path: "/",
-    maxAge: 0,
-  });
-
-  // If there was a token, revoke it
-  if (token) {
-    await jwtService.revokeToken(c, token);
+export const rateLimit = async ({
+  c,
+  next,
+  authed,
+  keyValue,
+  keyFunc = baseKeyFunc,
+  weight = 1,
+}: {
+  c: Context<typeConfig.Context>;
+  next: Next;
+  authed: boolean;
+  keyValue?: string;
+  keyFunc?: KeyFunction;
+  weight?: WeightRange;
+}) => {
+  const RATE_LIMITER = authed ? env(c).AUTHED_RATE_LIMITER : env(c).BASE_RATE_LIMITER;
+  let key = keyValue ? keyValue : keyFunc(c);
+  if (!key) {
+    throw new errorConfig.TooManyRequests();
   }
+  const arr = await Promise.all(Array.from({ length: weight }, () => RATE_LIMITER.limit({ key }))); // currently this API has no way to incr by N
+  if (arr.some((res) => !res.success)) throw new errorConfig.TooManyRequests();
+  await next();
 };
 
-export const getAuthMiddleware = (requireUserVerified: boolean) => {
+export const handleAuth = (requireUserVerified: boolean) => {
   const authenticate = async (c: Context<typeConfig.Context>, next: Next) => {
-    try {
-      const { JWT_SECRET } = env(c);
-      if (!JWT_SECRET) {
-        throw new Error("JWT_SECRET is not configured");
-      }
-
-      let token: string | undefined;
-
-      // Check Authorization header first (mobile)
-      const authHeader = c.req.header("Authorization");
-      if (authHeader?.startsWith(BEARER_PREFIX)) {
-        token = authHeader.slice(BEARER_PREFIX.length);
-      }
-
-      // If no Authorization header, check for cookie (web)
-      if (!token) {
-        token = getCookie(c, AUTH_COOKIE_NAME);
-      }
-
-      if (!token) {
-        throw new errorConfig.Unauthorized("Authentication required");
-      }
-
-      // Verify and decode the token, including revocation check
-      const payload: typeConfig.AccessTokenBody = await jwtService.verifyToken(JWT_SECRET, token, c);
-
-      // Check if user verification is required
-      if (requireUserVerified && payload.scope === "unverified") {
-        throw new errorConfig.Unauthorized("Unverified user");
-      }
-
-      // Decrypt sensitive data
-      try {
-        payload.sub = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
-      } catch (decryptError) {
-        throw new errorConfig.Unauthorized("Invalid token data");
-      }
-
-      // Add user data to context
-      c.set("access_token_body", payload);
-
-      await next();
-    } catch (error) {
-      if (error instanceof HTTPException) {
-        throw error;
-      }
-      throw new errorConfig.Unauthorized("Invalid authentication token");
+    const { JWT_SECRET } = env(c);
+    if (!JWT_SECRET) {
+      throw new Error("JWT_SECRET is not configured");
     }
+
+    let token: string | undefined;
+
+    // Check Authorization header first (mobile)
+    const authHeader = c.req.header("Authorization");
+    if (authHeader?.startsWith(BEARER_PREFIX)) {
+      token = authHeader.slice(BEARER_PREFIX.length);
+    }
+
+    // If no Authorization header, check for cookie (web)
+    if (!token) {
+      token = getCookie(c, authUtil.AUTH_COOKIE_NAME);
+    }
+
+    if (!token) {
+      throw new errorConfig.Unauthorized("Authentication required");
+    }
+
+    // Verify and decode the token, including revocation check
+    const payload: typeConfig.AccessTokenBody = await jwtService.verifyToken(JWT_SECRET, token, c);
+
+    // Check if user verification is required
+    if (requireUserVerified && payload.scope === "unverified") {
+      throw new errorConfig.Unauthorized("Unverified user");
+    }
+
+    // Decrypt sensitive data
+    try {
+      payload.sub = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
+    } catch (decryptError) {
+      throw new errorConfig.Unauthorized("Invalid token data");
+    }
+
+    // Add user data to context
+    c.set("access_token_body", payload);
+
+    await rateLimit({ c, next, authed: true, keyValue: payload.sub });
   };
   return authenticate;
 };

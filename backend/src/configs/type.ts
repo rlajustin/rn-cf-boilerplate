@@ -2,12 +2,20 @@ import { Hono } from "hono";
 import { BlankSchema } from "hono/types";
 import { type AccessTokenBody } from "shared";
 
+export type RateLimitBinding = {
+  limit: ({ key }: { key: string }) => {
+    key: string;
+    success: boolean;
+  };
+};
+
 export type { AccessTokenBody };
 
 export type Bindings = {
   DB: D1Database;
   KV: KVNamespace;
-  RATE_LIMITER: DurableObjectNamespace;
+  AUTHED_RATE_LIMITER: RateLimitBinding;
+  BASE_RATE_LIMITER: RateLimitBinding;
   ENVIRONMENT: string;
   LOG_LEVEL: string;
   SMTP_HOST: string;

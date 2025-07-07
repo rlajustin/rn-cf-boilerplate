@@ -5,9 +5,8 @@ import { drizzle } from "drizzle-orm/d1";
 import { jwtService } from "@services";
 import * as bcrypt from "bcryptjs";
 import { env } from "hono/adapter";
-import { setAuthToken } from "@middleware";
 import { HandlerFunction, Route } from "@routes/utils";
-import { cryptoUtil } from "@utils";
+import { cryptoUtil, authUtil } from "@utils";
 
 const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
   const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
@@ -43,7 +42,7 @@ const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
 
   const accessToken = await jwtService.signToken(JWT_SECRET, tokenBody);
 
-  return setAuthToken(c, accessToken);
+  return authUtil.setAuthToken(c, accessToken);
 };
 
 export const LoginRoute: Route<"LOGIN"> = {
