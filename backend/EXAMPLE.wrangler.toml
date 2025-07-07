@@ -92,4 +92,4 @@ binding = "KV"
 id = "<YOUR-PROD-DB-ID>"
 
 [env.prod.vars]
-ENVIRONMENT = "production"
+ENVIRONMENT = "prod"

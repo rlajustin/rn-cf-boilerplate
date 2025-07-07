@@ -7,7 +7,6 @@ import { cryptoUtil, authUtil, requestUtil } from "@utils";
 import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
 import { WeightRange } from "shared/src/types";
-import { AllEndpoints } from "shared";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -35,7 +34,7 @@ export const rateLimit = async ({
   weight?: WeightRange;
 }) => {
   const RATE_LIMITER = authed ? env(c).AUTHED_RATE_LIMITER : env(c).BASE_RATE_LIMITER;
-  let key = keyValue ? keyValue : keyFunc(c);
+  const key = keyValue ? keyValue : keyFunc(c);
   if (!key) {
     throw new errorConfig.TooManyRequests();
   }

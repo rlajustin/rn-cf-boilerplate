@@ -1,5 +1,4 @@
 import { Context } from "hono";
-import { rateLimiter } from "hono-rate-limiter";
 import { typeConfig } from "@configs";
 import { getConnInfo } from "hono/cloudflare-workers";
 
