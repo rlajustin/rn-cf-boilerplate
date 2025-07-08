@@ -1,5 +1,5 @@
 import { typeConfig, errorConfig } from "@configs";
-import { userSchema } from "@schema";
+import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { jwtService } from "@services";
@@ -9,12 +9,9 @@ import { HandlerFunction, Route } from "@routes/utils";
 import { cryptoUtil, authUtil } from "@utils";
 
 const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
-  const userTable = userSchema.users;
+  const db = drizzle(c.env.DB, { schema });
 
-  const user = await db.query.users.findFirst({
-    where: eq(userTable.email, dto.email),
-  });
+  const [user] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
 
   if (!user) {
     throw new errorConfig.Unauthorized("Invalid credentials");

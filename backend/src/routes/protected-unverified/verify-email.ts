@@ -1,5 +1,5 @@
 import { errorConfig } from "@configs";
-import { userSchema } from "../../schema";
+import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { kvService } from "@services";
@@ -7,11 +7,9 @@ import { HandlerFunction, Route } from "@routes/utils";
 import { authUtil } from "@utils";
 
 const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
+  const db = drizzle(c.env.DB, { schema: { users: schema.users } });
   const kv = c.env.KV;
-  const userTable = userSchema.users;
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
-
   const code = await kvService.getEmailVerificationCode(kv, authenticatedUser.sub);
   if (!code) {
     throw new errorConfig.Unauthorized("Invalid email verification code");
@@ -20,17 +18,48 @@ const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
   if (code !== dto.code) {
     throw new errorConfig.Unauthorized("Invalid email verification code");
   }
+  let returnMessage;
+  if (authenticatedUser.scope === "user") {
+    console.log(authenticatedUser.sub);
+    const updatedUser = await db
+      .update(schema.users)
+      .set({ email: dto.newEmail })
+      .where(eq(schema.users.userId, authenticatedUser.sub))
+      .returning();
 
-  await db
-    .update(userTable)
-    .set({
-      isEmailVerified: true,
-    })
-    .where(eq(userTable.userId, authenticatedUser.sub));
+    if (!updatedUser)
+      returnMessage = {
+        success: false,
+        newEmail: dto.newEmail,
+        message: "Failed to update email, please try again",
+      };
+
+    returnMessage = {
+      success: true,
+      newEmail: dto.newEmail,
+      message: "Email successfully changed. Please log in again.",
+    };
+  } else {
+    const updatedUser = await db
+      .update(schema.users)
+      .set({
+        isEmailVerified: true,
+      })
+      .where(eq(schema.users.userId, authenticatedUser.sub));
+    if (!updatedUser)
+      returnMessage = {
+        success: false,
+        message: "Failed to verify email, please try again",
+      };
+
+    returnMessage = {
+      success: true,
+      message: "Email verified successfully. Please log in again.",
+    };
+  }
 
   await kvService.deleteEmailVerificationCode(kv, authenticatedUser.sub);
-
-  return { success: true, message: "Email verified successfully" };
+  return returnMessage;
 };
 
 export const VerifyEmailRoute: Route<"VERIFY_EMAIL"> = {

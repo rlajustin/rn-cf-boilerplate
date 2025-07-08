@@ -1,14 +1,19 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import { useAuth } from "@/contexts";
+import React, { useState, useEffect, useMemo } from "react";
+import { AuthState, useAuth } from "@/contexts";
 import { apiClient } from "@/utils";
+import { useSearchParams } from "next/navigation";
+import Toast from "@/shared-components/Toast";
 
 export default function EmailVerification() {
+  // Use the correct Next.js hook for search params
+  const searchParams = useSearchParams();
   const [code, setCode] = useState("");
   const [resendCountdown, setResendCountdown] = useState(0);
   const [isResending, setIsResending] = useState(false);
   const [resendMessage, setResendMessage] = useState("");
-  const { isLoading, signOut, email } = useAuth();
+  const { isLoading, signOut, email: userEmail, authState } = useAuth();
+  const email = useMemo(() => searchParams.get("email") ?? userEmail, [searchParams, userEmail]);
   const abortController = new AbortController();
 
   // Countdown timer for resend button
@@ -24,9 +29,10 @@ export default function EmailVerification() {
     if (!email || code.length !== 6) return;
 
     try {
-      const response = await apiClient.post("VERIFY_EMAIL", abortController.signal, { code });
+      const payload = { code, newEmail: authState === AuthState.SignedIn ? email : undefined };
+      const response = await apiClient.post("VERIFY_EMAIL", abortController.signal, payload);
       if (response.success) {
-        // trigger success toast
+        Toast.success(response.message);
         await signOut();
       }
     } catch (error) {

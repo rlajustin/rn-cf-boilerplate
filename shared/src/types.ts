@@ -14,6 +14,9 @@ export type BaseEndpoint<M extends HttpMethod> = {
   rateLimitWeight?: WeightRange; // due to performance, don't want this to be too high
 };
 
+// ProtectedEndpoint is a BaseEndpoint where authenticate must be true
+export type ProtectedEndpoint = Omit<BaseEndpoint<any>, "authenticate"> & { authenticate: true };
+
 type Enumerate<N extends number, Acc extends number[] = []> = Acc["length"] extends N
   ? Acc[number]
   : Enumerate<N, [...Acc, Acc["length"]]>;

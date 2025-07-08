@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsString } from "class-validator";
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { BaseEndpoint, BaseDto } from "../../types";
 
 class VerifyEmailDto extends BaseDto {
@@ -6,15 +6,21 @@ class VerifyEmailDto extends BaseDto {
   @IsNotEmpty()
   code: string;
 
+  @IsEmail()
+  @IsOptional()
+  newEmail?: string;
+
   constructor(dto: VerifyEmailDto) {
     super(dto);
     this.code = dto.code;
+    this.newEmail = dto.newEmail;
   }
 }
 
 type VerifyEmailResponse = {
   success: boolean;
   message: string;
+  newEmail?: string;
 };
 
 export const VerifyEmailEndpoint = {

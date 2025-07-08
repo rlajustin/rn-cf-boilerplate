@@ -103,27 +103,24 @@ export const handleSendEmailVerificationCode = async (
 ): Promise<true> => {
   const { EMAIL_VERIFICATION_CODE_LIMIT: threshold } = env(c);
 
-  try {
-    const numCodes = await kvService.getEmailVerificationCodeAttempts(c.env.KV, authId);
+  await kvService.setEmailVerificationCodeAttempts(c.env.KV, authId, 0);
+  const numCodes = await kvService.getEmailVerificationCodeAttempts(c.env.KV, authId);
 
-    if (threshold) {
-      if (numCodes >= threshold) {
-        loggerUtil.triggerLogger(c, loggerUtil.LoggerLevel.Warn, "Email verification code limit reached: " + email);
-        throw new errorConfig.Forbidden("Email verification code limit reached, try again in 24 hours");
-      }
-
-      await kvService.setEmailVerificationCodeAttempts(c.env.KV, authId, numCodes + 1);
+  if (threshold) {
+    if (numCodes >= threshold) {
+      loggerUtil.triggerLogger(c, loggerUtil.LoggerLevel.Warn, "Email verification code limit reached: " + email);
+      throw new errorConfig.Forbidden("Email verification code limit reached, try again in 24 hours");
     }
 
-    const mfaCode = await sendEmailAuthorizationCode(c, email);
-    if (mfaCode) {
-      await kvService.storeEmailVerificationCode(c.env.KV, authId, mfaCode);
-    }
-
-    return true;
-  } catch (error) {
-    throw new errorConfig.InternalServerError((error as Error).message);
+    await kvService.setEmailVerificationCodeAttempts(c.env.KV, authId, numCodes + 1);
   }
+
+  const mfaCode = await sendEmailAuthorizationCode(c, email);
+  if (mfaCode) {
+    await kvService.storeEmailVerificationCode(c.env.KV, authId, mfaCode);
+  }
+
+  return true;
 };
 
 export const sendPasswordResetEmail = async (

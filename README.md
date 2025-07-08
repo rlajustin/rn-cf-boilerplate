@@ -8,12 +8,12 @@
 - [x] webapp with at least auth (login) and pw reset
 - [x] dont encrypt email in access token that's sort of silly
 - [x] look at the auth again and make sure it's like reasonably secure lol (ip rate limits? ddos protection? make a better rate limiter)
+- [x] change email? delete account?
 - [ ] README stuff
   - [ ] describe security parameters in the readme
   - [ ] more verbose setup in readme (include prerequisites)
   - [ ] describe all features, i.e. email verification, pw reset, app attest, auth flow/how to use auth, etc.
 - [ ] build using external database service, integrate using hyperdrive or smth
-- [ ] change email? delete account?
 
 ##### \*\*This repository can be used in its current state, but many features are still incomplete/unsafe.
 

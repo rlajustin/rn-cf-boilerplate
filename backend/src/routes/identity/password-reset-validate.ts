@@ -1,4 +1,4 @@
-import { userSchema } from "@schema";
+import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { HandlerFunction, Route } from "@routes/utils";
@@ -8,8 +8,7 @@ import { jwtService } from "@services";
 import { errorConfig } from "@configs";
 
 const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = async (c, query) => {
-  const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
-  const userTable = userSchema.users;
+  const db = drizzle(c.env.DB, { schema });
 
   const { JWT_SECRET } = env(c);
   const token = query["token"];
@@ -43,7 +42,7 @@ const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = asy
   }
 
   // Find user by decrypted userId
-  const user = await db.query.users.findFirst({ where: eq(userTable.userId, userId) });
+  const user = await db.select().from(schema.users).where(eq(schema.users.userId, userId));
   if (!user) {
     throw new errorConfig.Unauthorized();
   }

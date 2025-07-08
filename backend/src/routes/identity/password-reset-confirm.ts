@@ -1,5 +1,5 @@
 import { typeConfig, errorConfig } from "@configs";
-import { userSchema } from "@schema";
+import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { kvService } from "@services";
@@ -10,8 +10,7 @@ import { jwtService } from "@services";
 import { cryptoUtil } from "@utils";
 
 const postPasswordResetConfirm: HandlerFunction<"PASSWORD_RESET_CONFIRM"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
-  const userTable = userSchema.users;
+  const db = drizzle(c.env.DB, { schema });
 
   const { JWT_SECRET } = env(c);
   let payload: Record<string, unknown>;
@@ -51,9 +50,9 @@ const postPasswordResetConfirm: HandlerFunction<"PASSWORD_RESET_CONFIRM"> = asyn
 
   // Update password
   await db
-    .update(userTable)
+    .update(schema.users)
     .set({ password: hashedPassword, isEmailVerified: true })
-    .where(eq(userTable.userId, userId));
+    .where(eq(schema.users.userId, userId));
 
   return { success: true, message: "Password has been reset successfully" };
 };

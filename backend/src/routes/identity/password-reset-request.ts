@@ -1,5 +1,5 @@
 import { errorConfig } from "@configs";
-import { userSchema } from "@schema";
+import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
 import { emailService, jwtService, kvService } from "@services";
@@ -10,8 +10,7 @@ import { env } from "hono/adapter";
 
 const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = async (c, dto) => {
   const { KV } = env(c);
-  const db = drizzle(c.env.DB, { schema: { users: userSchema.users } });
-  const userTable = userSchema.users;
+  const db = drizzle(c.env.DB, { schema });
 
   try {
     EmailValidator.validate(dto.email);
@@ -22,9 +21,7 @@ const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = asyn
     throw new errorConfig.BadRequest("Invalid email");
   }
 
-  const user = await db.query.users.findFirst({
-    where: eq(userTable.email, dto.email),
-  });
+  const [user] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email));
 
   if (user) {
     // Always return success is good practice probably
