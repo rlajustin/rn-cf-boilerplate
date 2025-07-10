@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { View, TextInput, TouchableOpacity, Text } from "react-native";
 import { useTheme, useAuth } from "contexts";
-import { apiClient } from "utils/ApiClient";
+import { apiClient } from "utils/api-util";
 import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 

@@ -4,7 +4,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import uuid from "react-native-uuid";
 import stringify from "json-stable-stringify";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { apiClient } from "./ApiClient";
+import { apiClient } from "./api-util";
 import { Buffer } from "buffer";
 import { AllEndpoints } from "shared";
 const KEY_ID_KEY = "publicKeyId";

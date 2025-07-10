@@ -3,6 +3,8 @@ main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
+##### LOCAL
+
 [[unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
 type = "ratelimit"
@@ -29,7 +31,7 @@ database_id = "asdf"
 binding = "KV"
 id = ""
 
-###### PREVIEW
+##### PREVIEW
 
 [[env.preview.unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
@@ -62,8 +64,7 @@ LOG_LEVEL = "silent"
 binding = "KV"
 id = "<YOUR-PREVIEW-KV-ID>"
 
-
-###### PROD
+##### PROD
 
 [[env.prod.unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
@@ -79,7 +80,7 @@ simple = { limit = 15, period = 10 }
 
 [env.prod]
 name = "<YOUR-PROD-API-NAME>"
-# routes = [{ pattern = "<your-prod-api-url>", custom_domain = true }]
+# routes = [{ pattern = "<YOUR-PROD-API-URL>", custom_domain = true }]
 
 [[env.prod.d1_databases]]
 binding = "DB"
@@ -89,7 +90,7 @@ database_id = "<YOUR-PROD-DB-ID>"
 
 [[env.prod.kv_namespaces]]
 binding = "KV"
-id = "<YOUR-PROD-DB-ID>"
+id = "<YOUR-PROD-KV-ID>"
 
 [env.prod.vars]
 ENVIRONMENT = "prod"

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
-import { apiClient } from "@/client/utils/ApiClient";
+import { apiClient } from "utils/api-util";
 import { Platform } from "react-native";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { type AccessTokenBody } from "shared";

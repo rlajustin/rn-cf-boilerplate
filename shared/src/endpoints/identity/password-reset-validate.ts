@@ -10,5 +10,5 @@ export const PasswordResetValidateEndpoint = {
   body: undefined,
   response: {} as PasswordResetValidateResponse,
   query: { token: "" } as { token: string },
-  authenticate: false,
+  authScope: null,
 } satisfies BaseEndpoint<"get">;

@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { router } from "expo-router";
 import { useTheme } from "contexts";
-import { apiClient } from "@/client/utils/ApiClient";
+import { apiClient } from "utils/api-util";
 import { Ionicons } from "@expo/vector-icons";
 
 export default function PasswordResetScreen() {

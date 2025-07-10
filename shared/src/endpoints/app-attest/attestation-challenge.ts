@@ -10,5 +10,5 @@ export const AttestationChallengeEndpoint = {
   body: undefined,
   response: {} as AttestationChallengeResponse,
   query: {},
-  authenticate: false,
+  authScope: null,
 } satisfies BaseEndpoint<"get">;

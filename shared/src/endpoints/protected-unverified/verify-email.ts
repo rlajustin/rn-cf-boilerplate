@@ -29,5 +29,5 @@ export const VerifyEmailEndpoint = {
   body: VerifyEmailDto,
   response: {} as VerifyEmailResponse,
   query: undefined,
-  authenticate: true,
+  authScope: "unverified",
 } satisfies BaseEndpoint<"post">;

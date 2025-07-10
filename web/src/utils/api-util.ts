@@ -15,7 +15,7 @@ async function apiCall<T extends keyof typeof AllEndpoints>(
   const endpoint = AllEndpoints[endpointName];
   const url = `${LOCAL_DEV_URL}${endpoint.path}`;
   const { params, body, config, signal } = options || {};
-  const authenticate = AllEndpoints[endpointName].authenticate;
+  const authenticate = AllEndpoints[endpointName].authScope !== null;
   const needsCredentials = authenticate || endpointName === "LOGIN";
   try {
     if (endpoint.method === "get") {

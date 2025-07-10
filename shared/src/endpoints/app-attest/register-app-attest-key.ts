@@ -27,5 +27,5 @@ export const RegisterAppAttestKeyEndpoint = {
   body: RegisterAppAttestKeyDto,
   response: {} as RegisterAppAttestKeyResponse,
   query: undefined,
-  authenticate: false,
+  authScope: null,
 } satisfies BaseEndpoint<"post">;

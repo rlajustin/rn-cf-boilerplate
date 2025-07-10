@@ -49,10 +49,7 @@ const postPasswordResetConfirm: HandlerFunction<"PASSWORD_RESET_CONFIRM"> = asyn
   const hashedPassword = await bcrypt.hash(dto.newPassword, salt);
 
   // Update password
-  await db
-    .update(schema.users)
-    .set({ password: hashedPassword, isEmailVerified: true })
-    .where(eq(schema.users.userId, userId));
+  await db.update(schema.users).set({ password: hashedPassword, scope: "user" }).where(eq(schema.users.userId, userId));
 
   return { success: true, message: "Password has been reset successfully" };
 };

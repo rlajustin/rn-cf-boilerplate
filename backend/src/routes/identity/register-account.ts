@@ -19,7 +19,7 @@ const postRegisterAccount: HandlerFunction<"REGISTER_ACCOUNT"> = async (c, dto) 
     throw new errorConfig.BadRequest("Invalid email");
   }
 
-  const foundUser = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
+  const [foundUser] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
 
   if (foundUser) {
     throw new errorConfig.Forbidden("User already exists");

@@ -1,5 +1,6 @@
 import { sql } from "drizzle-orm";
 import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { AuthScope } from "shared/src/types";
 
 /**
  * Base user table with core identity/auth fields
@@ -18,7 +19,7 @@ export const users = sqliteTable("users", {
   // isPhoneVerified: integer('is_phone_verified', { mode: 'boolean' }).notNull().default(false),
 
   // Account Status
-  isEmailVerified: integer("is_email_verified", { mode: "boolean" }).notNull().default(false),
+  scope: text("scope", { enum: AuthScope }).notNull().default("unverified"),
   isActive: integer("is_active", { mode: "boolean" }).notNull().default(true),
 
   // Timestamps
@@ -28,7 +29,7 @@ export const users = sqliteTable("users", {
   updatedAt: text("updated_at")
     .notNull()
     .default(sql`CURRENT_TIMESTAMP`),
-  deletedAt: text("deleted_at"), // flow is to keep for 30 days, then delete
+  deletedAt: text("deleted_at"), // possible flow is to keep for 30 days, then delete via cron job
 });
 
 // Types for TypeScript

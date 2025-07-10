@@ -4,13 +4,16 @@ export abstract class BaseDto {
 
 export type HttpMethod = "post" | "get";
 
+export const AuthScope = ["unverified", "user", "admin"] as const;
+export type AuthScopeType = (typeof AuthScope)[number] | null;
+
 export type BaseEndpoint<M extends HttpMethod> = {
   path: `/${string}`;
   method: M;
   body: M extends "get" ? undefined : BaseDto;
   response: object;
   query: M extends "get" ? Record<string, string> : undefined;
-  authenticate: boolean; // this is only used in the frontend, backend must authenticate by using middleware
+  authScope: AuthScopeType;
   rateLimitWeight?: WeightRange; // due to performance, don't want this to be too high
 };
 

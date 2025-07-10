@@ -43,7 +43,7 @@ const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
     const updatedUser = await db
       .update(schema.users)
       .set({
-        isEmailVerified: true,
+        scope: "user",
       })
       .where(eq(schema.users.userId, authenticatedUser.sub));
     if (!updatedUser)

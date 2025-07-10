@@ -37,5 +37,5 @@ export const ExampleEndpoint = {
   body: ExampleDto,
   response: {} as ExampleResponse,
   query: undefined,
-  authenticate: true,
+  authScope: "user",
 } satisfies BaseEndpoint<"post">;

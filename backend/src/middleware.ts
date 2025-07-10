@@ -6,7 +6,7 @@ import { kvService, jwtService } from "@services";
 import { cryptoUtil, authUtil, requestUtil } from "@utils";
 import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
-import { WeightRange } from "shared/src/types";
+import { AuthScopeType, WeightRange } from "shared/src/types";
 
 const BEARER_PREFIX = "Bearer ";
 
@@ -18,7 +18,19 @@ const baseKeyFunc: KeyFunction = (c) => {
   return ip;
 };
 
-export const rateLimit = async ({
+export const generateMiddleware = (scope: AuthScopeType) => {
+  if (scope === null) {
+    return async (c: Context<typeConfig.Context>, next: Next) => {
+      await rateLimit({ c, next, authed: false });
+    };
+  } else if (scope === "unverified") {
+    return handleAuth(false);
+  } else {
+    return handleAuth(true);
+  }
+};
+
+const rateLimit = async ({
   c,
   next,
   authed,
@@ -43,7 +55,7 @@ export const rateLimit = async ({
   await next();
 };
 
-export const handleAuth = (requireUserVerified: boolean) => {
+const handleAuth = (requireUserVerified: boolean) => {
   const authenticate = async (c: Context<typeConfig.Context>, next: Next) => {
     const { JWT_SECRET } = env(c);
     if (!JWT_SECRET) {

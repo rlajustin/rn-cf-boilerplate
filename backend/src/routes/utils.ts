@@ -2,6 +2,7 @@ import { Context, Hono } from "hono";
 import { typeConfig } from "@configs";
 import { validateUtil } from "@utils";
 import { AllEndpoints } from "shared";
+import { generateMiddleware } from "@middleware";
 
 type Expand<T> = T extends infer O ? { [K in keyof O]: O[K] } : never;
 type ExpandedRequest<T extends keyof typeof AllEndpoints> = Expand<
@@ -49,6 +50,10 @@ export function mountRoutes<T extends keyof typeof AllEndpoints>(
 ) {
   routes.forEach((route) => {
     const { path, method, validatedHandler } = createValidatedHandler(route);
+
+    const middleware = generateMiddleware(AllEndpoints[route.key].authScope);
+
+    app.use(path, middleware);
     app[method](path, validatedHandler);
   });
 }

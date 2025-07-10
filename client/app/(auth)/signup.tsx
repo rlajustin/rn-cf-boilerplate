@@ -11,7 +11,7 @@ import {
 import { hashPassword, useAuth } from "contexts/AuthContext";
 import { router } from "expo-router";
 import IOSAttestManager from "@/client/utils/IOSAttestManager";
-import { apiClient } from "@/client/utils/ApiClient";
+import { apiClient } from "utils/api-util";
 import { useTheme } from "contexts";
 
 export default function SignupScreen() {

@@ -24,5 +24,5 @@ export const PasswordResetRequestEndpoint = {
   body: PasswordResetRequestDto,
   response: {} as PasswordResetRequestResponse,
   query: undefined,
-  authenticate: false,
+  authScope: null,
 } satisfies BaseEndpoint<"post">;

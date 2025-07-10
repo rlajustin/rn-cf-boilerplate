@@ -82,7 +82,7 @@ class ApiClient {
       params,
       options,
       signal,
-      authenticate: AllEndpoints[endpointName].authenticate,
+      authenticate: AllEndpoints[endpointName].authScope !== null,
     });
   }
 
@@ -103,7 +103,7 @@ class ApiClient {
       body,
       options,
       signal,
-      authenticate: AllEndpoints[endpointName].authenticate,
+      authenticate: AllEndpoints[endpointName].authScope !== null,
     });
   }
 

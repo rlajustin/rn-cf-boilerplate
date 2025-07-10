@@ -34,5 +34,5 @@ export const RegisterAccountEndpoint = {
   body: RegisterAccountDto,
   response: {} as RegisterAccountResponse,
   query: undefined,
-  authenticate: false,
+  authScope: null,
 } satisfies BaseEndpoint<"post">;

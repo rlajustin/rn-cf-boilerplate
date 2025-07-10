@@ -3,7 +3,7 @@ import React from "react";
 import { useTheme, useAuth } from "contexts";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
-import { apiClient } from "../../../utils/ApiClient";
+import { apiClient } from "../../../utils/api-util";
 
 export default function HomeScreen() {
   const { theme } = useTheme();

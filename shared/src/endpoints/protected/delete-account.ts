@@ -17,5 +17,5 @@ export const DeleteAccountEndpoint = {
   body: DeleteAccountDto,
   response: {} as DeleteAccountResponse,
   query: undefined,
-  authenticate: true,
+  authScope: "user",
 } satisfies BaseEndpoint<"post">;

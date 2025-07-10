@@ -7,7 +7,6 @@ import { LoginRoute } from "./login";
 import { PasswordResetConfirmRoute } from "./password-reset-confirm";
 import { PasswordResetRequestRoute } from "./password-reset-request";
 import { PasswordResetValidateRoute } from "./password-reset-validate";
-import { rateLimit } from "@middleware";
 
 const identityRoutes = new Hono<typeConfig.Context>();
 
@@ -18,10 +17,6 @@ const routes = [
   PasswordResetRequestRoute,
   PasswordResetValidateRoute,
 ];
-
-identityRoutes.use("*", async (c, next) => {
-  await rateLimit({ c, next, authed: false });
-});
 
 mountRoutes(routes, identityRoutes);
 

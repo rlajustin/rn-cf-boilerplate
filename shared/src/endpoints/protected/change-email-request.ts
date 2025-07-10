@@ -25,5 +25,5 @@ export const ChangeEmailRequestEndpoint = {
   body: ChangeEmailRequestDto,
   response: {} as ChangeEmailRequestResponse,
   query: undefined,
-  authenticate: true,
+  authScope: "user",
 } satisfies BaseEndpoint<"post">;
