@@ -1,0 +1,185 @@
+:root {
+  /* Brand colors */
+  --vp-c-brand-1: #3498DB;
+  --vp-c-brand-2: #5DADE2;
+  --vp-c-brand-3: #86C3E8;
+  --vp-c-brand-soft: #86c3e88c;
+
+  /* Background colors */
+  --vp-c-bg: #ECF0F1;
+  --vp-c-bg-alt: #F5F6FA;
+  --vp-c-bg-elv: #ECF0F1;
+  --vp-c-bg-soft: #F5F6FA;
+
+  /* Text colors */
+  --vp-c-text-1: #2C3E50;
+  --vp-c-text-2: #7F8C8D;
+  --vp-c-text-3: #7F8C8D99;
+
+  /* Border colors */
+  --vp-c-divider: #BDC3C7;
+  --vp-c-border: #BDC3C7;
+}
+
+.dark {
+  /* Background colors */
+  --vp-c-bg: #2C3E50;
+  --vp-c-bg-alt: #34495E;
+  --vp-c-bg-elv: #2C3E50;
+  --vp-c-bg-soft: #34495E;
+
+  /* Text colors */
+  --vp-c-text-1: #F5F6FA;
+  --vp-c-text-2: #ECF0F1;
+  --vp-c-text-3: #ECF0F1;
+
+  /* Border colors */
+  --vp-c-divider: #BDC3C7;
+  --vp-c-border: #BDC3C7;
+}
+
+pre, pre code {
+  white-space: pre-wrap !important;
+  word-break: break-word !important;
+  overflow-x: auto;
+}
+
+/* Documentation buttons */
+.doc-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin: 3rem 0;
+}
+
+/* Override any VitePress default link styles for doc buttons */
+.doc-button{
+  text-decoration: none !important;
+}
+
+.doc-button {
+  display: flex;
+  align-items: center;
+  padding: 1.25rem;
+  background: var(--vp-c-bg-soft);
+  border: 2px solid var(--vp-c-border);
+  border-radius: 12px;
+  color: var(--vp-c-text-1);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.doc-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(52, 152, 219, 0.1), transparent);
+  transition: left 0.5s;
+}
+
+.doc-button:hover::before {
+  left: 100%;
+}
+
+.doc-button:hover {
+  background: var(--vp-c-bg-elv);
+  border-color: var(--vp-c-brand-1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(52, 152, 219, 0.2);
+}
+
+.doc-button:active {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(52, 152, 219, 0.15);
+}
+
+.doc-button-icon {
+  font-size: 1.75rem;
+  margin-right: 1rem;
+  flex-shrink: 0;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.doc-button-text {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
+.doc-button-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin-bottom: 0.375rem;
+  color: var(--vp-c-text-1);
+}
+
+.doc-button-desc {
+  font-size: 0.9rem;
+  color: var(--vp-c-text-2);
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+/* Table of Contents Styling */
+.VPDocAside .content-container {
+  position: sticky;
+  top: 80px;
+}
+
+.VPDocAside .content-container .outline-link {
+  color: var(--vp-c-text-2);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  padding: 0.25rem 0;
+  transition: color 0.2s ease;
+}
+
+.VPDocAside .content-container .outline-link:hover {
+  color: var(--vp-c-brand-1);
+}
+
+.VPDocAside .content-container .outline-link.active {
+  color: var(--vp-c-brand-1);
+  font-weight: 600;
+}
+
+.VPDocAside .content-container .outline-link.depth-2 {
+  font-weight: 600;
+  color: var(--vp-c-text-1);
+  margin-top: 0.5rem;
+}
+
+.VPDocAside .content-container .outline-link.depth-3 {
+  padding-left: 1rem;
+  font-size: 0.85rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .doc-buttons {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin: 2rem 0;
+  }
+  
+  .doc-button {
+    padding: 1rem;
+  }
+  
+  .doc-button-icon {
+    font-size: 1.5rem;
+    margin-right: 0.75rem;
+  }
+  
+  .doc-button-title {
+    font-size: 1rem;
+  }
+  
+  .doc-button-desc {
+    font-size: 0.85rem;
+  }
+}

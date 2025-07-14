@@ -1,23 +1,23 @@
 {
-  "name": "rn-cf-boilerplate",
+  "name": "<YOUR-APP-NAME>",
   "version": "0.3.0",
   "private": true,
   "workspaces": [
     "client",
     "backend",
     "web",
-    "shared"
+    "shared",
+    "docs"
   ],
   "scripts": {
     "postinstall": "patch-package",
     "client": "cd client && npm run",
     "backend": "cd backend && npm run",
     "web": "cd web && npm run",
+    "docs": "cd docs && npm run",
     "version:patch": "npm version patch",
     "version:minor": "npm version minor",
-    "version:major": "npm version major",
-    "android": "expo run:android",
-    "ios": "expo run:ios"
+    "version:major": "npm version major"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "latest",
@@ -37,7 +37,6 @@
   "overrides": {
     "react-native-reanimated": "3.17.5"
   },
-  "author": "Justin Kim <me@rlajustin.com>",
   "license": "MIT",
   "dependencies": {
     "expo": "~52.0.46",
