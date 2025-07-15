@@ -77,6 +77,22 @@ In this repository, the middleware will automatically decode and authenticate th
 
 ## Boilerplate Security Features
 
-## Why no phone number verification?
+Here is a brief overview of the current auth flow in this app.
+
+### User Scopes
+
+There are two main user scopes in this app, though you may want to add more or implement more complex verification steps.
+
+### User registration
+
+With the existing setup, users must register with an email, which they then must verify. Simply registering a user will create an entry in the users table (`backend/src/schema/user.ts`), and they will immediately be able to log in and out. We can restrict their access to other parts of the app by specifying in the `shared/` folder whether an endpoint requires the "user" scope. Before email verification, their scope is set to "unverified", and the middleware will prevent them from successfully using specified protected endpoints.
+
+If you want to tie your app more strongly to mobile devices in an attempt to deter programmatic account creation (through which attacker could potentially circumvent API rate limits), you can make use of Apple's [Managed Device Attestation](https://support.apple.com/guide/deployment/managed-device-attestation-dep28afbde6a/web) to limit app registrations. I haven't yet implemented many features myself, but it's definitely something to look into. However, this is probably not something to care too much about in the beginning.
+
+### Changing Password or Email
+
+This app already supports allowing a user to change their password or email. As it exists right now, the frontend implementation is for the web only, but there is a way to integrate it with your mobile app. It should be noted that the password reset link itself immediately gives the user authority to change their password, whereas the email verification code requires the user to log in first. Users can only request an email change if their previous email is verified, whereas account deletion and password changes can be done for emails that haven't yet been verified. The email is only changed in the database if the user successfully completes the email change, otherwise nothing happens.
+
+### Why no phone number verification?
 
 If you want to add phone verification to the auth flow and have some money, I might be down to help make it/add it to this repo. I didn't initially want to do it because sms is annoying and like $0.01/text.
