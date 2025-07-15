@@ -1,17 +1,16 @@
-import { Stack } from "expo-router";
-import { AuthState, useAuth } from "contexts/AuthContext";
+import { Stack, router } from "expo-router";
+import { useAuth } from "contexts/AuthContext";
 import { useEffect } from "react";
-import { router } from "expo-router";
 
 export default function AuthLayout() {
-  const { authState, isLoading, email } = useAuth();
+  const { authScope, isLoading, email } = useAuth();
 
   useEffect(() => {
     if (isLoading || !email) return;
-    if (authState !== AuthState.SignedOut) {
+    if (authScope) {
       router.replace("/");
     }
-  }, [authState, isLoading, email]);
+  }, [authScope, isLoading, email]);
 
   return (
     <Stack

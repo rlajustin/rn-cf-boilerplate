@@ -18,6 +18,7 @@ class RegisterAppAttestKeyDto extends BaseDto {
 }
 
 type RegisterAppAttestKeyResponse = {
+  success: boolean;
   message: string;
 };
 

@@ -1,23 +1,23 @@
 import { router, Stack } from "expo-router";
 import React, { useEffect } from "react";
-import { AuthState, useAuth } from "contexts/AuthContext";
+import { useAuth } from "contexts/AuthContext";
 
 export default function ProtectedLayout() {
-  const { authState, isLoading, email } = useAuth();
+  const { authScope, isLoading, email } = useAuth();
 
   useEffect(() => {
     if (isLoading) return;
-    if (authState === AuthState.SignedOut) {
+    if (authScope === null) {
       router.replace("/login");
-    } else if (authState === AuthState.SignedInButNotVerified) {
+    } else if (authScope === "unverified") {
       router.replace({
         pathname: "/verify",
         params: { email },
       });
-    } else if (authState === AuthState.SignedIn) {
+    } else {
       router.replace("/");
     }
-  }, [authState, isLoading, email]);
+  }, [authScope, isLoading, email]);
 
   return (
     <Stack>

@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useRef, useEffect } from "react";
-import { useAuth, AuthState } from "@/contexts";
+import { useAuth } from "@/contexts";
 import { useRouter } from "next/navigation";
 
 export default function Home() {
@@ -8,15 +8,15 @@ export default function Home() {
   const [passwordInput, setPasswordInput] = useState("");
   const [error] = useState("");
   const passwordInputRef = useRef<HTMLInputElement>(null);
-  const { signIn, isLoading, authState } = useAuth();
+  const { signIn, isLoading, authScope } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
-    if (authState === AuthState.SignedIn) {
+    if (authScope === "user") {
       router.push("/dash");
     }
-  }, [router, authState, isLoading]);
+  }, [router, authScope, isLoading]);
 
   return (
     <div className="flex-1 p-4 bg-surface">
@@ -47,7 +47,7 @@ export default function Home() {
           }}
         />
         <button
-          className="w-full h-12 rounded-lg justify-center items-center my-4 bg-accent text-primary font-semibold"
+          className="w-full h-12 rounded-lg justify-center items-center my-4 bg-accent text-primary font-semibold disabled:opacity-70"
           onClick={() => signIn(emailInput, passwordInput)}
           disabled={isLoading}
         >

@@ -37,6 +37,8 @@ export default function EmailVerification() {
       if (response.success) {
         await signOut();
         router.replace("/");
+      } else {
+        throw new Error(response.message);
       }
     } catch (error) {
       console.error("OTP verification failed:", error);
@@ -55,10 +57,11 @@ export default function EmailVerification() {
         signal: abortController.signal,
         body: {},
       });
-
       if (response.success) {
         setResendMessage("Verification code sent successfully!");
         setResendCountdown(60); // 60 second cooldown
+      } else {
+        throw new Error(response.message);
       }
     } catch (error) {
       setResendMessage(error instanceof Error ? error.message : "Failed to resend code");

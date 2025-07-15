@@ -1,7 +1,7 @@
 import * as nodemailer from "nodemailer";
 import { Context } from "hono";
 import { env } from "hono/adapter";
-import { errorConfig, messageConfig, typeConfig } from "@configs";
+import { errorConfig, typeConfig } from "@configs";
 import { cryptoUtil, loggerUtil } from "@utils";
 import * as kvService from "./kv";
 
@@ -15,8 +15,8 @@ const checkEmailSetup = (c: Context<typeConfig.Context>) => {
     SMTP_SENDER_NAME: smtpSenderName,
   } = env(c);
   if (!smtpHost || !smtpPort || !smtpUser || !smtpPassword || !smtpSenderAddress || !smtpSenderName) {
-    loggerUtil.triggerLogger(c, loggerUtil.LoggerLevel.Error, messageConfig.ConfigError.NoEmailSender);
-    throw new errorConfig.Forbidden(messageConfig.ConfigError.NoEmailSender);
+    loggerUtil.triggerLogger(c, loggerUtil.LoggerLevel.Error, "Email sender not set up");
+    throw new errorConfig.InternalServerError("Email sender not set up");
   }
 };
 

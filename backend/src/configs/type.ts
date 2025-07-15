@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import { Hono } from "hono";
 import { BlankSchema } from "hono/types";
 import { type AccessTokenBody } from "shared";
@@ -35,9 +36,6 @@ export type Context = {
   Bindings: Bindings;
   Variables: {
     access_token_body?: AccessTokenBody;
-    // basic_auth_body?: BasicAuthBody;
-    // session: Session;
-    // session_key_rotation: boolean;
   };
 };
 

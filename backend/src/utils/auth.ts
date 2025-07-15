@@ -1,11 +1,18 @@
 import { Context } from "hono";
 import { errorConfig, typeConfig } from "@configs";
-import { HandlerFunction } from "@routes/utils";
 import { jwtService } from "@services";
-import { setCookie } from "hono/cookie";
 import { env } from "hono/adapter";
+import { HTTPException } from "hono/http-exception";
+import { cryptoUtil } from "@utils";
+import * as schema from "@schema";
+import { drizzle } from "drizzle-orm/d1";
+import { eq } from "drizzle-orm";
+import { randomBytes } from "crypto";
+import { hashString } from "@utils/crypto";
+import { AuthScopeType } from "shared";
 
-export const AUTH_COOKIE_NAME = "auth_token";
+export const ACCESS_COOKIE_NAME = "access_token";
+export const REFRESH_COOKIE_NAME = "refresh_token";
 
 /**
  * Helper function to get the authenticated user from the context
@@ -19,43 +26,93 @@ export const getAuthenticatedUser = (c: Context<typeConfig.Context>): typeConfig
   return accessTokenBody;
 };
 
-/**
- * Sets the JWT token as an HTTP-only cookie for web clients
- * or returns it in the response body for mobile clients
- */
-export const setAuthToken = (c: Context, token: string): Awaited<ReturnType<HandlerFunction<"LOGIN">>> => {
-  const platform = c.req.header("x-platform");
-  const isMobile = platform === "mobile";
+export const generateAccessToken = async (c: Context<typeConfig.Context>, user: schema.User): Promise<string> => {
+  const now = Date.now();
+  const expiresIn = 1000 * 60 * 15; // 15 minutes
+  const expiresOn = now + expiresIn;
 
-  // Safely extract expiration from token
-  const expiration = jwtService.getTokenExpiration(token);
-  const { scope } = jwtService.decodeToken(token);
+  const { JWT_SECRET } = env(c);
+  const encryptedUserId = cryptoUtil.encryptString(user.userId, JWT_SECRET);
 
-  if (isMobile) {
-    return {
-      success: true,
-      data: {
-        accessToken: token,
-        scope,
-        expires: expiration,
-      },
-    };
+  const tokenBody: typeConfig.AccessTokenBody = {
+    sub: encryptedUserId,
+    email: user.email,
+    scope: user.scope,
+    iat: now,
+    exp: expiresOn,
+  };
+
+  return await jwtService.signToken(JWT_SECRET, tokenBody);
+};
+
+export const refreshAccessToken = async (c: Context<typeConfig.Context>, refreshToken: string): Promise<string> => {
+  const { DB } = env(c);
+  const db = drizzle(DB, { schema });
+
+  const hashedToken = cryptoUtil.hashString(refreshToken);
+
+  const [result] = await db
+    .select({
+      token: schema.refreshTokens,
+      user: schema.users,
+    })
+    .from(schema.refreshTokens)
+    .innerJoin(schema.users, eq(schema.refreshTokens.userId, schema.users.userId))
+    .where(eq(schema.refreshTokens.token, hashedToken))
+    .limit(1);
+
+  if (!result) throw new errorConfig.Unauthorized("Invalid refresh token");
+
+  const { token, user } = result;
+  if (new Date(token.expiresAt).getTime() < Date.now()) {
+    // custom error for this case
+    throw new HTTPException(418, { message: "Credentials expired" });
   }
 
-  // For web clients, set HTTP-only cookie
-  setCookie(c, AUTH_COOKIE_NAME, token, {
-    httpOnly: true,
-    secure: origin?.includes("localhost") && env(c).ENVIRONMENT !== "prod" ? false : true,
-    sameSite: "Lax",
-    path: "/",
-    maxAge: Math.ceil(expiration - Date.now() / 1000),
-  });
+  const accessToken = await generateAccessToken(c, user);
+
+  return accessToken;
+};
+
+/**
+ * Generates a secure random refresh token, stores its hash in the DB, and returns the raw token.
+ */
+export const generateAndStoreRefreshToken = async (
+  db: ReturnType<typeof import("drizzle-orm/d1").drizzle>,
+  userId: string
+): Promise<{ refreshToken: string; refreshTokenExpires: number }> => {
+  const refreshTokenRaw = randomBytes(64).toString("hex");
+  const refreshTokenHash = hashString(refreshTokenRaw);
+  const refreshTokenExpires = Date.now() + 1000 * 60 * 60 * 24 * 400;
+
+  const [res] = await db
+    .insert(schema.refreshTokens)
+    .values({
+      token: refreshTokenHash,
+      userId,
+      expiresAt: new Date(refreshTokenExpires).toISOString(),
+    })
+    .returning();
+  if (!res) throw new Error("Failed to generate tokens");
 
   return {
-    success: true,
-    data: {
-      scope,
-      expires: expiration,
-    },
+    refreshToken: refreshTokenRaw,
+    refreshTokenExpires,
   };
+};
+
+export const isMobile = (c: Context<typeConfig.Context>): boolean => {
+  const platform = c.req.header("x-platform");
+  return platform === "mobile";
+};
+
+export const allowUserAccess = (requiredScope: AuthScopeType, userScope: AuthScopeType): boolean => {
+  if (userScope === "admin") return true;
+  else if (requiredScope === null) return true;
+  else if (requiredScope === "unverified") {
+    if (userScope) return true;
+  } else if (requiredScope === "user") {
+    if (userScope === "user") return true;
+  }
+  return false;
 };

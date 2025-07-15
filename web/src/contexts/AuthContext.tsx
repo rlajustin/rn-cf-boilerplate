@@ -1,30 +1,36 @@
 "use client";
-import React, { createContext, useContext } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { usePersistentState } from "@/hooks";
 import { apiClient, hashPassword } from "@/utils";
-
-export enum AuthState {
-  SignedOut,
-  SignedInButNotVerified,
-  SignedIn,
-}
+import { AuthScopeType } from "shared";
+import { isAxiosError } from "axios";
 
 type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => void;
+  signOut: () => Promise<void>;
   isLoading: boolean;
-  authState: AuthState | null;
+  authScope: AuthScopeType | null;
   email: string | null;
 };
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [authState, setAuthState, authStateLoading] = usePersistentState<AuthState | null>("auth_state", null);
+  const [authScope, setAuthScope, authScopeLoading] = usePersistentState<AuthScopeType | null>("auth_scope", null);
+  const [accessTokenExpires, setAccessTokenExpires, accessTokenExpiresLoading] = usePersistentState<number | null>(
+    "access_token_expires",
+    null
+  );
   const [email, setEmail, emailLoading] = usePersistentState<string | null>("account_email", null);
-  const abortController = new AbortController();
 
-  const isLoading = emailLoading || authStateLoading;
+  const [apiClientInitialized, setApiClientInitialized] = useState(false);
+
+  const abortController = useMemo(() => new AbortController(), []);
+
+  const isLoading = useMemo(
+    () => emailLoading || authScopeLoading || accessTokenExpiresLoading,
+    [emailLoading, authScopeLoading, accessTokenExpiresLoading]
+  );
 
   async function signIn(email: string, password: string) {
     try {
@@ -33,20 +39,43 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (!response.success || !response.data.scope) {
         throw new Error("Invalid login response");
       }
+
       setEmail(email);
-      setAuthState(response.data.scope !== "unverified" ? AuthState.SignedIn : AuthState.SignedInButNotVerified);
+      setAuthScope(response.data.scope);
+      setAccessTokenExpires(response.data.cookies.exp.accessToken);
     } catch (error) {
       throw new Error(`Error signing in: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
-  async function signOut() {
-    setAuthState(AuthState.SignedOut);
-    setEmail(null);
-  }
+  const signOut = useCallback(async () => {
+    try {
+      if (apiClientInitialized) {
+        const res = await apiClient.post("LOGOUT", abortController.signal, {});
+        if (!res.success) {
+          console.error(res.message);
+        }
+      }
+      setAuthScope(null);
+      setEmail(null);
+    } catch (e) {
+      if (isAxiosError(e)) {
+        console.error(e.message);
+      }
+      console.error((e as Error).message);
+    }
+  }, [setAuthScope, setEmail, abortController, apiClientInitialized]);
+
+  useEffect(() => {
+    if (isLoading || apiClientInitialized) return;
+    (async () => {
+      await apiClient.init(signOut, accessTokenExpires, setAuthScope);
+      setApiClientInitialized(true);
+    })();
+  }, [accessTokenExpires, isLoading, signOut, setAuthScope, apiClientInitialized]);
 
   return (
-    <AuthContext.Provider value={{ signIn, signOut, isLoading, authState, email }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ signIn, signOut, isLoading, authScope, email }}>{children}</AuthContext.Provider>
   );
 }
 

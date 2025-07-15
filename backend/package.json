@@ -15,10 +15,11 @@
     "prod:update_secrets": "wrangler secret bulk .dev.vars --env prod",
     "prod:migrate": "npm run generate && wrangler d1 migrations apply <YOUR-APP-NAME>-db --env prod --remote",
     "prod:deploy": "npm run prod:migrate && wrangler deploy --env prod",
-    "db:studio": "LOCAL_DB_PATH=$(find .wrangler/state/v3/d1/miniflare-D1DatabaseObject -type f -name '*.sqlite' -exec ls -t {} + | head -n1) drizzle-kit studio"
+    "db:studio": "LOCAL_DB_STUDIO=1 drizzle-kit studio"
   },
   "dependencies": {
     "@hono-rate-limiter/cloudflare": "^0.2.2",
+    "@nerdfolio/drizzle-d1-helpers": "^0.1.4",
     "@simplewebauthn/server": "^13.1.1",
     "@simplewebauthn/types": "^12.0.0",
     "@types/bcryptjs": "^2.4.6",

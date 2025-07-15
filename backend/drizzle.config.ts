@@ -1,14 +1,14 @@
-import { config } from "dotenv";
 import { defineConfig } from "drizzle-kit";
+import { D1Helper } from "@nerdfolio/drizzle-d1-helpers";
 
-config({ path: ".dev.vars" });
+const helper = D1Helper.get();
 
-export default process.env.LOCAL_DB_PATH
+export default Number(process.env.LOCAL_DB_STUDIO ?? "0") === 1
   ? {
       schema: "./src/schema",
       dialect: "sqlite",
       dbCredentials: {
-        url: process.env.LOCAL_DB_PATH,
+        url: helper.sqliteLocalFileCredentials.url,
       },
     }
   : defineConfig({

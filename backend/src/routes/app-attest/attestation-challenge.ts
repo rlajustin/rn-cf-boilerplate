@@ -3,7 +3,7 @@ import { HandlerFunction, Route } from "@routes/utils";
 import { errorConfig } from "@configs";
 import { kvService } from "@services";
 
-const getAttestationChallenge: HandlerFunction<"GET_ATTESTATION_CHALLENGE"> = async (c) => {
+const postAttestationChallenge: HandlerFunction<"POST_ATTESTATION_CHALLENGE"> = async (c) => {
   const clientId = c.req.header("x-client-id");
   const requestId = c.req.header("x-request-id");
   if (!clientId || !requestId) {
@@ -17,7 +17,7 @@ const getAttestationChallenge: HandlerFunction<"GET_ATTESTATION_CHALLENGE"> = as
   };
 };
 
-export const AttestationChallengeRoute: Route<"GET_ATTESTATION_CHALLENGE"> = {
-  key: "GET_ATTESTATION_CHALLENGE",
-  handler: getAttestationChallenge,
+export const AttestationChallengeRoute: Route<"POST_ATTESTATION_CHALLENGE"> = {
+  key: "POST_ATTESTATION_CHALLENGE",
+  handler: postAttestationChallenge,
 };

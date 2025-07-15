@@ -5,7 +5,6 @@ import { HandlerFunction, Route } from "@routes/utils";
 import { env } from "hono/adapter";
 import { cryptoUtil } from "@utils";
 import { jwtService } from "@services";
-import { errorConfig } from "@configs";
 
 const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = async (c, query) => {
   const db = drizzle(c.env.DB, { schema });
@@ -13,7 +12,7 @@ const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = asy
   const { JWT_SECRET } = env(c);
   const token = query["token"];
   if (!token || typeof token !== "string") {
-    throw new errorConfig.Forbidden();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
 
   // Verify and decode the JWT
@@ -21,33 +20,33 @@ const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = asy
   try {
     payload = (await jwtService.verifyToken(JWT_SECRET, token)) as Record<string, unknown>;
   } catch {
-    throw new errorConfig.Forbidden();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
 
   // Check expiration
-  const now = Math.floor(Date.now() / 1000);
+  const now = Date.now();
   if (typeof payload.exp !== "number" || payload.exp < now) {
-    throw new errorConfig.Unauthorized();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
 
   // Decrypt user id
   if (typeof payload.sub !== "string") {
-    throw new errorConfig.BadRequest();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
   let userId: string;
   try {
     userId = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
   } catch {
-    throw new errorConfig.Forbidden();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
 
   // Find user by decrypted userId
   const user = await db.select().from(schema.users).where(eq(schema.users.userId, userId));
   if (!user) {
-    throw new errorConfig.Unauthorized();
+    return { success: false, message: "Link invalid, please request a new one" };
   }
 
-  return { valid: true };
+  return { success: true };
 };
 
 export const PasswordResetValidateRoute: Route<"PASSWORD_RESET_VALIDATE"> = {

@@ -1,6 +1,6 @@
 import { IsEmail, IsNotEmpty, IsString } from "class-validator";
 import { normalizeEmail } from "../../utils";
-import { BaseEndpoint, BaseDto, AuthScopeType } from "../../types";
+import { BaseEndpoint, BaseDto, AuthScopeType, AuthScope } from "../../types";
 
 class LoginDto extends BaseDto {
   @IsEmail()
@@ -18,14 +18,27 @@ class LoginDto extends BaseDto {
   }
 }
 
-type LoginResponse = {
-  success: boolean;
-  data: {
-    expires: number;
-    scope: AuthScopeType;
-    accessToken?: string;
-  };
-};
+type LoginResponse =
+  | {
+      success: true;
+      data: {
+        scope: AuthScopeType;
+        cookies: {
+          tokens?: {
+            accessToken: string;
+            refreshToken: string;
+          };
+          exp: {
+            accessToken: number;
+            refreshToken: number;
+          };
+        };
+      };
+    }
+  | {
+      success: false;
+      message: string;
+    };
 
 export const LoginEndpoint = {
   path: "/login" as const,

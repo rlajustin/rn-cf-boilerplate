@@ -6,7 +6,7 @@ import stringify from "json-stable-stringify";
 import { Sha256 } from "@aws-crypto/sha256-js";
 import { apiClient } from "./api-util";
 import { Buffer } from "buffer";
-import { AllEndpoints } from "shared";
+import { AllEndpoints, PostEndpointsKeys } from "shared";
 const KEY_ID_KEY = "publicKeyId";
 const ATTEST_EXPIRATION_KEY = "attestExpiration";
 const DEBUG = true;
@@ -68,10 +68,11 @@ class IOSAttestManager {
       }
       const newKeyId = await AppAttest.generateKeys();
       const attestRequestId = uuid.v4();
-      const serverChallenge = await apiClient.get({
-        endpointName: "GET_ATTESTATION_CHALLENGE",
+      const serverChallenge = await apiClient.post({
+        endpointName: "POST_ATTESTATION_CHALLENGE",
         signal: this.controller.signal,
-        options: { requestId: attestRequestId },
+        body: {},
+        requestOptions: { requestId: attestRequestId },
       });
       if (!serverChallenge) {
         throw new Error("Failed to get server challenge");
@@ -89,7 +90,7 @@ class IOSAttestManager {
           keyId: newKeyId,
           attestationBase64,
         },
-        options: { requestId: attestRequestId },
+        requestOptions: { requestId: attestRequestId },
       });
       if (!success) {
         throw new Error("Failed to attest device");
@@ -108,7 +109,7 @@ class IOSAttestManager {
   }
 
   // only accepts endpoints which take attestationNonce in the body
-  async makeAttestedPostRequest<T extends keyof typeof AllEndpoints>(
+  async makeAttestedPostRequest<T extends PostEndpointsKeys>(
     endpointName: T,
     body: InstanceType<NonNullable<(typeof AllEndpoints)[T]["body"]>> & { attestationNonce?: string }
   ): Promise<boolean> {
@@ -119,16 +120,17 @@ class IOSAttestManager {
       }
 
       const attestExpiration = await AsyncStorage.getItem(ATTEST_EXPIRATION_KEY);
-      if (attestExpiration && Date.now() > parseInt(attestExpiration)) {
+      if (attestExpiration && parseInt(attestExpiration) < Date.now()) {
         await this.prepareAndRegisterKey();
         await new Promise((resolve) => setTimeout(resolve, 500)); // todo get rid of this
       }
 
       const attestRequestId = uuid.v4();
       const serverChallenge = await apiClient.post({
-        endpointName: "GET_ATTESTATION_CHALLENGE",
+        endpointName: "POST_ATTESTATION_CHALLENGE",
         signal: this.controller.signal,
-        options: { requestId: attestRequestId },
+        body: {},
+        requestOptions: { requestId: attestRequestId },
       });
       if (!serverChallenge) {
         throw new Error("Failed to get server challenge");
@@ -151,7 +153,7 @@ class IOSAttestManager {
         endpointName,
         signal: this.controller.signal,
         body,
-        options: { requestId: attestRequestId, clientAttestationBase64 },
+        requestOptions: { requestId: attestRequestId, clientAttestationBase64 },
       });
       if (!resBody) {
         throw new Error("Failed to make attested request");

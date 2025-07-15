@@ -1,4 +1,3 @@
-import { errorConfig } from "@configs";
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
@@ -14,11 +13,8 @@ const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = asyn
 
   try {
     EmailValidator.validate(dto.email);
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      throw new errorConfig.BadRequest(error.message);
-    }
-    throw new errorConfig.BadRequest("Invalid email");
+  } catch (err) {
+    return { success: false, message: "Too many requests for this email. Try again in 24 hours." };
   }
 
   const [user] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email));
@@ -27,14 +23,14 @@ const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = asyn
     // Always return success is good practice probably
     const kvRequests = await kvService.getPasswordResetAttempts(KV, dto.email);
     if (kvRequests > 3) {
-      throw new errorConfig.BadRequest("Try again in 24 hours.");
+      return { success: false, message: "Too many requests for this email. Try again in 24 hours." };
     }
     await kvService.setPasswordResetAttempts(KV, dto.email, kvRequests + 1);
     // Generate a JWT token for password reset (expires in 24 hours)
     const { JWT_SECRET } = env(c);
     const encryptedUserId = cryptoUtil.encryptString(user.userId, JWT_SECRET);
-    const now = Math.floor(Date.now() / 1000);
-    const exp = now + 60 * 60 * 24; // 24 hours
+    const now = Date.now();
+    const exp = now + 1000 * 60 * 60 * 24; // 24 hours
     const payload = { sub: encryptedUserId, email: user.email, exp };
     const token = await jwtService.signGenericToken(JWT_SECRET, payload);
 

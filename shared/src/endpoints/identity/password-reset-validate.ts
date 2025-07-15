@@ -1,7 +1,8 @@
 import { BaseEndpoint } from "../../types";
 
 type PasswordResetValidateResponse = {
-  valid: boolean;
+  success: boolean;
+  message?: string;
 };
 
 export const PasswordResetValidateEndpoint = {

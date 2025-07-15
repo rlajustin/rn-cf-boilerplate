@@ -48,9 +48,9 @@ export const revokeToken = async (c: Context<typeConfig.Context>, token: string)
     throw new Error("Token has no expiration");
   }
 
-  const ttl = exp - Math.floor(Date.now() / 1000);
+  const ttl = exp - Date.now();
   if (ttl > 0) {
-    await c.env.KV.put(`${REVOKED_TOKENS_PREFIX}${token}`, "revoked", { expirationTtl: ttl });
+    await c.env.KV.put(`${REVOKED_TOKENS_PREFIX}${token}`, "revoked", { expirationTtl: ttl / 1000 });
   }
 };
 
