@@ -1,6 +1,9 @@
 import { defineConfig } from "vitepress";
 
+const base = "/rn-cf-docs";
+
 export default defineConfig({
+  base,
   lang: "en-US",
   title: "RN/CF Boilerplate Docs",
   description: "Documentation for my awesome boilerplate",
@@ -9,7 +12,7 @@ export default defineConfig({
   // base: '/my-repo-name/',
 
   themeConfig: {
-    logo: "assets/logo.png",
+    // logo: "logo.png",
 
     // Enable table of contents in sidebar
     outline: {
@@ -60,5 +63,5 @@ export default defineConfig({
   },
 
   // Head tags
-  head: [["link", { rel: "icon", href: "/favicon.ico" }]],
+  head: [["link", { rel: "icon", href: `${base}/logo.png` }]],
 });

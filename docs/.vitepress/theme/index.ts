@@ -1,8 +1,9 @@
 import DefaultTheme from "vitepress/theme";
+import { h } from "vue";
+import TitleUpdater from "./TitleUpdater.vue";
 import DocNavButton from "./DocNavButton.vue";
-import "./custom.css";
-
 import type { Theme, EnhanceAppContext } from "vitepress";
+import "./custom.css";
 
 const theme: Theme = {
   ...DefaultTheme,
@@ -10,6 +11,7 @@ const theme: Theme = {
     if (DefaultTheme.enhanceApp) DefaultTheme.enhanceApp(ctx);
     ctx.app.component("DocNavButton", DocNavButton);
   },
+  Layout: (props) => h("div", [h(TitleUpdater), h(DefaultTheme.Layout, props)]),
 };
 
 export default theme;

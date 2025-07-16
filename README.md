@@ -2,7 +2,13 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/U7U21CUEQD)
 
-#### TODO
+## Documentation
+
+[Documentation](https://rlajustin.com/rn-cf-docs)
+
+##### \*\*This repository can be used in its current state, but some features may be incomplete.
+
+## TODO
 
 - [x] add email verification code attempts logic
 - [x] implement password reset
@@ -25,37 +31,6 @@
   - [ ] describe all features, i.e. email verification, pw reset, app attest, auth flow/how to use auth, etc.
 - [ ] build using external database service, integrate using hyperdrive or smth
 - [ ] make more special use of managed device attestation
-
-##### \*\*This repository can be used in its current state, but some features could still be incomplete/unsafe.
-
-## Contents
-
-1. [Introduction](#introduction)
-   - [Design Language](#design-language)
-   - [What is React Native](#what-is-react-native)
-   - [What is Cloudflare](#what-is-cloudflare)
-   - [AI isn't super good at building this](#AI-isn't-super-good-at-building-this)
-2. [Features](#features)
-   - [End-to-end Type Safety](#end-to-end-type-safety)
-   - [Simple(ish) Deployment](#simpleish-deployment)
-3. [Getting Started](#getting-started)
-4. [Self-hosting](#self-hosting)
-   - [Database integration with Hyperdrive](#)
-   -
-
-##### Building to IOS
-
-The first (and likely most difficult) task to complete is building/launching the IOS app. First, `npm i` and then
-
-`cd client && npx expo prebuild -p ios && cd ios && pod install`
-
-you need to have cocoapods (which also requires homebrew on macos)
-
-run `npm run client ios`. This will attempt to build the app using XCode and simulate the app.
-
-##### Deploying local API
-
-First, you will need to create a free cloudflare account. Then, in order to run the api, we need to set up the SQL and key-value databases. Run `npx wrangler kv namespace create <KV-STORAGE-NAME>`. The output should list an id field, which you should paste into `wrangler.toml` under `[[kv_namespaces]]`. You should also go through `wrangler.toml` and fill in wherever there is a placeholder. You should be able to run `npm run backend dev` to start a local instance of the API.
 
 ## License
 

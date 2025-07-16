@@ -1,5 +1,5 @@
 <template>
-  <a :href="to" class="doc-button">
+  <a :href="withBase(to)" class="doc-button">
     <span class="doc-button-icon">{{ icon }}</span>
     <span class="doc-button-text">
       <span class="doc-button-title">{{ title }}</span>
@@ -9,6 +9,8 @@
 </template>
 
 <script setup lang="ts">
+import { withBase } from 'vitepress'
+
 defineProps<{
   to: string;
   icon: string;

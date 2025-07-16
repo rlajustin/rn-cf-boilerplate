@@ -7,12 +7,12 @@ hero:
   text: "Flexible, safe, and accessible boilerplate"
   tagline: "React Native + Cloudflare • Build fast, scale smart"
   image:
-    src: "assets/logo.png"
+    src: "logo.png"
     alt: RN/CF iOS Boilerplate
   actions:
     - theme: brand
       text: Get Started
-      link: /guide/getting-started
+      link: /guide/introduction
     - theme: alt
       text: View on GitHub
       link: https://github.com/rlajustin/rn-cf-boilerplate
