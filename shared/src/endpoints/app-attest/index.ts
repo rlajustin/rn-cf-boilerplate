@@ -3,5 +3,5 @@ import { AttestationChallengeEndpoint } from "./attestation-challenge";
 
 export const AppAttestEndpoints = {
   REGISTER_APP_ATTEST_KEY: RegisterAppAttestKeyEndpoint,
-  GET_ATTESTATION_CHALLENGE: AttestationChallengeEndpoint,
+  POST_ATTESTATION_CHALLENGE: AttestationChallengeEndpoint,
 };

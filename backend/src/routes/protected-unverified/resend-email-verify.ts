@@ -7,7 +7,8 @@ import { authUtil } from "@utils";
 const postResendEmailVerify: HandlerFunction<"RESEND_VERIFY_EMAIL"> = async (c, dto) => {
   // Get authenticated user using the helper function
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
-  if (authenticatedUser.scope !== "unverified") throw new errorConfig.Forbidden();
+  if (authenticatedUser.scope !== "unverified")
+    throw new errorConfig.Forbidden("Email already verified, please log in again.");
 
   try {
     EmailValidator.validate(authenticatedUser.email);

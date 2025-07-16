@@ -1,8 +1,6 @@
-import { typeConfig, errorConfig } from "@configs";
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { kvService } from "@services";
 import * as bcrypt from "bcryptjs";
 import { HandlerFunction, Route } from "@routes/utils";
 import { env } from "hono/adapter";
@@ -17,30 +15,30 @@ const postPasswordResetConfirm: HandlerFunction<"PASSWORD_RESET_CONFIRM"> = asyn
   try {
     payload = (await jwtService.verifyToken(JWT_SECRET, dto.token)) as Record<string, unknown>;
   } catch {
-    throw new errorConfig.Unauthorized("Invalid or expired token");
+    return { success: true, message: "Invalid or expired link" };
   }
 
   // Check expiration
-  const now = Math.floor(Date.now() / 1000);
+  const now = Date.now();
   if (typeof payload.exp !== "number" || payload.exp < now) {
-    throw new errorConfig.Unauthorized("Token expired");
+    return { success: true, message: "Invalid or expired link" };
   }
 
   // Decrypt user id
   if (typeof payload.sub !== "string") {
-    throw new errorConfig.Unauthorized("Invalid or expired token");
+    return { success: true, message: "Invalid or expired link" };
   }
   let userId: string;
   try {
     userId = cryptoUtil.decryptString(payload.sub, JWT_SECRET);
   } catch {
-    throw new errorConfig.Unauthorized("Invalid or expired token");
+    return { success: true, message: "Invalid or expired link" };
   }
 
   // Find user by decrypted userId
   // const user = await db.query.users.findFirst({ where: eq(userTable.userId, userId) });
   // if (!user) {
-  //   throw new errorConfig.Unauthorized("Invalid or expired token");
+  //   return { success: true, message: "Invalid or expired link" };
   // }
 
   // @dev THIS NEEDS TO BE HASHED ON THE FRONTEND TOO

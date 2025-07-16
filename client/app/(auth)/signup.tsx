@@ -8,15 +8,17 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from "react-native";
-import { hashPassword, useAuth } from "contexts/AuthContext";
+import { getAuthScope, hashPassword, useAuth } from "contexts/AuthContext";
 import { router } from "expo-router";
-import IOSAttestManager from "@/client/utils/IOSAttestManager";
+import IOSAttestManager from "utils/IOSAttestManager";
 import { apiClient } from "utils/api-util";
 import { useTheme } from "contexts";
+import * as SecureStore from "expo-secure-store";
+import { isAxiosError } from "axios";
 
 export default function SignupScreen() {
   const abortController = new AbortController();
-  const { isLoading } = useAuth();
+  const { isLoading, setAuthScope } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -67,14 +69,27 @@ export default function SignupScreen() {
           password: hashedPassword,
         },
       });
-      if (response.success) {
-        router.replace({
-          pathname: "/verify",
-          params: { email },
-        });
+      if (response.success && response.data.cookies.tokens) {
+        const { tokens } = response.data.cookies;
+        await Promise.all([
+          SecureStore.setItemAsync("access_token", tokens.accessToken),
+          SecureStore.setItemAsync("refresh_token", tokens.refreshToken),
+        ]);
+        const { authScope, email } = await getAuthScope(tokens.accessToken);
+        setEmail(email);
+        setAuthScope(authScope);
+
+        if (response.success) {
+          router.replace({
+            pathname: "/verify",
+            params: { email },
+          });
+        }
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+    } catch (e) {
+      if (isAxiosError(e)) {
+        console.error(e.message);
+      }
     }
   };
 

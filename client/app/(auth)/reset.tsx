@@ -30,12 +30,14 @@ export default function PasswordResetScreen() {
     setError("");
     setMessage("");
     try {
-      await apiClient.post({
+      const res = await apiClient.post({
         endpointName: "PASSWORD_RESET_REQUEST",
         signal: abortController.signal,
         body: { email },
       });
-      setMessage("If the email exists, a reset link will be sent.");
+      if (res.success) {
+        setMessage(res.message);
+      } else throw new Error(res.message);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {

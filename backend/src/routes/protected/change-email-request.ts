@@ -5,7 +5,6 @@ import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
 import * as schema from "@schema";
 import { emailService } from "@services";
-import { errorConfig } from "@configs";
 
 const postChangeEmailRequest: HandlerFunction<"CHANGE_EMAIL_REQUEST"> = async (c, dto) => {
   // Get the authenticated user's information using helper functions

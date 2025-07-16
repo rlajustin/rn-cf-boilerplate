@@ -8,13 +8,11 @@ import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
 import { AuthScopeType, WeightRange } from "shared/src/types";
 
-const BEARER_PREFIX = "Bearer ";
-
 type KeyFunction = (c: Context<typeConfig.Context>) => string;
 
 const baseKeyFunc: KeyFunction = (c) => {
   const ip = requestUtil.getRequestIP(c);
-  if (!ip) throw new errorConfig.Forbidden();
+  if (!ip) throw new errorConfig.BadRequest("IP not found");
   return ip;
 };
 
@@ -23,10 +21,8 @@ export const generateMiddleware = (scope: AuthScopeType) => {
     return async (c: Context<typeConfig.Context>, next: Next) => {
       await rateLimit({ c, next, authed: false });
     };
-  } else if (scope === "unverified") {
-    return handleAuth(false);
   } else {
-    return handleAuth(true);
+    return handleAuth(scope);
   }
 };
 
@@ -55,25 +51,14 @@ const rateLimit = async ({
   await next();
 };
 
-const handleAuth = (requireUserVerified: boolean) => {
+const handleAuth = (requiredScope: AuthScopeType) => {
   const authenticate = async (c: Context<typeConfig.Context>, next: Next) => {
     const { JWT_SECRET } = env(c);
     if (!JWT_SECRET) {
       throw new Error("JWT_SECRET is not configured");
     }
 
-    let token: string | undefined;
-
-    // Check Authorization header first (mobile)
-    const authHeader = c.req.header("Authorization");
-    if (authHeader?.startsWith(BEARER_PREFIX)) {
-      token = authHeader.slice(BEARER_PREFIX.length);
-    }
-
-    // If no Authorization header, check for cookie (web)
-    if (!token) {
-      token = getCookie(c, authUtil.AUTH_COOKIE_NAME);
-    }
+    const token = getCookie(c, authUtil.ACCESS_COOKIE_NAME);
 
     if (!token) {
       throw new errorConfig.Unauthorized("Authentication required");
@@ -83,7 +68,7 @@ const handleAuth = (requireUserVerified: boolean) => {
     const payload: typeConfig.AccessTokenBody = await jwtService.verifyToken(JWT_SECRET, token, c);
 
     // Check if user verification is required
-    if (requireUserVerified && payload.scope === "unverified") {
+    if (!authUtil.allowUserAccess(requiredScope, payload.scope)) {
       throw new errorConfig.Unauthorized("Unverified user");
     }
 
@@ -174,7 +159,7 @@ async function performNonceChecks(
   }
   if (clientNonce !== nonce) {
     console.warn("Client provided nonce does not match!");
-    throw new errorConfig.Unauthorized("Client provided nonce does not match!");
+    throw new errorConfig.BadRequest("Client provided nonce does not match!");
   }
   return true;
 }

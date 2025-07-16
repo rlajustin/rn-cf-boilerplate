@@ -1,4 +1,3 @@
-import { errorConfig } from "@configs";
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
@@ -12,11 +11,17 @@ const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
   const code = await kvService.getEmailVerificationCode(kv, authenticatedUser.sub);
   if (!code) {
-    throw new errorConfig.Unauthorized("Invalid email verification code");
+    return {
+      success: false,
+      message: "Invalid or expired email verification code",
+    };
   }
 
   if (code !== dto.code) {
-    throw new errorConfig.Unauthorized("Invalid email verification code");
+    return {
+      success: false,
+      message: "Invalid or expired email verification code",
+    };
   }
   let returnMessage;
   if (authenticatedUser.scope === "user") {

@@ -24,8 +24,20 @@ class RegisterAccountDto extends BaseDto {
 }
 
 type RegisterAccountResponse = {
-  success: boolean;
-  message: string;
+  success: true;
+  data: {
+    scope: "unverified";
+    cookies: {
+      tokens?: {
+        accessToken: string;
+        refreshToken: string;
+      };
+      exp: {
+        accessToken: number;
+        refreshToken: number;
+      };
+    };
+  };
 };
 
 export const RegisterAccountEndpoint = {

@@ -1,46 +1,85 @@
-import { typeConfig, errorConfig } from "@configs";
+import { setCookie } from "hono/cookie";
+import { env } from "hono/adapter";
 import * as schema from "@schema";
+import { jwtService } from "@services";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { jwtService } from "@services";
 import * as bcrypt from "bcryptjs";
-import { env } from "hono/adapter";
 import { HandlerFunction, Route } from "@routes/utils";
-import { cryptoUtil, authUtil } from "@utils";
-import { AuthScope } from "shared";
+import { authUtil } from "@utils";
 
 const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
   const db = drizzle(c.env.DB, { schema });
 
-  const [user] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
+  const [user]: schema.User[] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
 
   if (!user) {
-    throw new errorConfig.Unauthorized("Invalid credentials");
+    return { success: false, message: "Invalid credentials" };
   }
 
   const isValidPassword = await bcrypt.compare(dto.password, user.password);
   if (!isValidPassword) {
-    throw new errorConfig.Unauthorized("Invalid credentials");
+    return { success: false, message: "Invalid credentials" };
   }
 
-  const now = Math.floor(Date.now() / 1000);
-  const expiresIn = 60 * 60 * 24; // 24 hours
-  const expiresOn = now + expiresIn;
+  const accessToken = await authUtil.generateAccessToken(c, user);
 
-  const { JWT_SECRET } = env(c);
-  const encryptedUserId = cryptoUtil.encryptString(user.userId, JWT_SECRET);
+  // Safely extract expiration from token
+  const { scope } = jwtService.decodeToken(accessToken);
+  const expiration = jwtService.getTokenExpiration(accessToken);
 
-  const tokenBody: typeConfig.AccessTokenBody = {
-    sub: encryptedUserId,
-    email: user.email,
-    scope: user.scope,
-    iat: now,
-    exp: expiresOn,
+  // Generate and store refresh token
+  const { refreshToken, refreshTokenExpires } = await authUtil.generateAndStoreRefreshToken(db, user.userId);
+
+  if (authUtil.isMobile(c)) {
+    return {
+      success: true,
+      data: {
+        cookies: {
+          tokens: {
+            accessToken,
+            refreshToken,
+          },
+          exp: {
+            accessToken: expiration,
+            refreshToken: refreshTokenExpires,
+          },
+        },
+        scope,
+        expires: expiration,
+      },
+    };
+  } else {
+    const origin = c.req.header("Origin");
+    // For web clients, set HTTP-only cookies
+    setCookie(c, authUtil.ACCESS_COOKIE_NAME, accessToken, {
+      httpOnly: true,
+      secure: origin?.includes("localhost") && env(c).ENVIRONMENT !== "prod" ? false : true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiration - Date.now(),
+    });
+    setCookie(c, authUtil.REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      secure: origin?.includes("localhost") && env(c).ENVIRONMENT !== "prod" ? false : true,
+      sameSite: "Lax",
+      path: "/api/refresh",
+      maxAge: 60 * 60 * 24 * 400, // 400 days
+    });
+  }
+
+  return {
+    success: true,
+    data: {
+      scope,
+      cookies: {
+        exp: {
+          accessToken: expiration,
+          refreshToken: refreshTokenExpires,
+        },
+      },
+    },
   };
-
-  const accessToken = await jwtService.signToken(JWT_SECRET, tokenBody);
-
-  return authUtil.setAuthToken(c, accessToken);
 };
 
 export const LoginRoute: Route<"LOGIN"> = {

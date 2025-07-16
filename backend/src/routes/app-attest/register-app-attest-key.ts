@@ -18,7 +18,7 @@ const postRegisterAppAttestKey: HandlerFunction<"REGISTER_APP_ATTEST_KEY"> = asy
 
   const nonce = await kvService.getAttestationNonce(c.env.KV, clientId, requestId);
   if (!nonce) {
-    throw new errorConfig.Unauthorized("No attestation challenge found");
+    throw new errorConfig.BadRequest("Attestation challenge not found, please restart");
   }
 
   const result = await verifyAttestation({
@@ -32,6 +32,7 @@ const postRegisterAppAttestKey: HandlerFunction<"REGISTER_APP_ATTEST_KEY"> = asy
   console.log(result);
   await kvService.setAppAttestKey(c.env.KV, clientId, result.publicKey);
   return {
+    success: true,
     message: "App Attest Key registered successfully",
   };
 };

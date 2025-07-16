@@ -78,3 +78,7 @@ export const decryptString = (encryptedText: string, jwtSecret: string): string 
 
   return decrypted;
 };
+
+export const hashString = (input: string): string => {
+  return createHash("sha256").update(input).digest("hex");
+};

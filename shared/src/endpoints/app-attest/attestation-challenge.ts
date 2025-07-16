@@ -1,4 +1,10 @@
-import { BaseEndpoint } from "../../types";
+import { BaseDto, BaseEndpoint } from "../../types";
+
+class AttestationChallengeDto extends BaseDto {
+  constructor(dto: AttestationChallengeDto) {
+    super(dto);
+  }
+}
 
 type AttestationChallengeResponse = {
   nonce: string;
@@ -6,9 +12,9 @@ type AttestationChallengeResponse = {
 
 export const AttestationChallengeEndpoint = {
   path: "/attestation-challenge" as const,
-  method: "get" as const,
-  body: undefined,
+  method: "post" as const,
+  body: AttestationChallengeDto,
   response: {} as AttestationChallengeResponse,
-  query: {},
+  query: undefined,
   authScope: null,
-} satisfies BaseEndpoint<"get">;
+} satisfies BaseEndpoint<"post">;

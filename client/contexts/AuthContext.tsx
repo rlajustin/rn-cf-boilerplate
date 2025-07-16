@@ -1,26 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import * as SecureStore from "expo-secure-store";
 import { apiClient } from "utils/api-util";
-import { Platform } from "react-native";
 import { Sha256 } from "@aws-crypto/sha256-js";
-import { type AccessTokenBody } from "shared";
+import { AuthScopeType, type AccessTokenBody } from "shared";
+import { isAxiosError } from "axios";
+
+export const CLIENT_ID_KEY = "client_id";
+export const ACCESS_TOKEN_KEY = "access_token";
+export const REFRESH_TOKEN_KEY = "refresh_token";
+
+export type SignOutFunction = (args?: { force: boolean }) => Promise<void>;
 
 type AuthContextType = {
   signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => void;
+  signOut: SignOutFunction;
   isLoading: boolean;
-  authState: AuthState;
+  authScope: AuthScopeType;
+  setAuthScope: React.Dispatch<React.SetStateAction<AuthScopeType>>;
   email: string | null;
-  // @dev remove this in production
+  // @dev remove this in production (it might be broken already lol)
   manualSignIn: boolean;
   setManualSignIn: React.Dispatch<React.SetStateAction<boolean>>;
 };
-
-export enum AuthState {
-  SignedOut,
-  SignedInButNotVerified,
-  SignedIn,
-}
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
@@ -31,23 +32,17 @@ function arrayBufferToBase64(buffer: Uint8Array): string {
   return btoa(binary);
 }
 
-async function getAuthState(token: string): Promise<{
-  authState: AuthState;
-  email: string | null;
+export async function getAuthScope(token: string): Promise<{
+  authScope: AuthScopeType;
+  email: string;
 }> {
   const [, payload] = token.split(".");
   const { exp, scope, email } = JSON.parse(atob(payload)) as AccessTokenBody;
-  let authState = null;
-  if (exp && Date.now() / 1000 < exp) {
-    if (scope && scope === "user") {
-      authState = AuthState.SignedIn;
-    } else {
-      authState = AuthState.SignedInButNotVerified;
-    }
-  } else {
-    authState = AuthState.SignedOut;
+  let authScope: AuthScopeType = null;
+  if (exp && Date.now() < exp) {
+    authScope = scope;
   }
-  return { authState, email };
+  return { authScope, email };
 }
 
 export function hashPassword(password: string): string {
@@ -58,41 +53,11 @@ export function hashPassword(password: string): string {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
-  const [authState, setAuthState] = useState(AuthState.SignedOut);
-  const [manualSignIn, setManualSignIn] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [authScope, setAuthScope] = useState<AuthScopeType>(null);
+  const [manualSignIn, setManualSignIn] = useState<boolean>(false);
   const [email, setEmail] = useState<string | null>(null);
   const controller = new AbortController();
-
-  useEffect(() => {
-    setAuthState(AuthState.SignedIn);
-  }, [manualSignIn]);
-
-  useEffect(() => {
-    checkAuthState();
-    return () => controller.abort();
-  }, []);
-
-  async function checkAuthState() {
-    try {
-      if (Platform.OS === "web") {
-        setAuthState(AuthState.SignedOut);
-      } else {
-        const token = await SecureStore.getItemAsync("auth_token");
-        if (!token) {
-          setAuthState(AuthState.SignedOut);
-          return;
-        }
-        const { authState, email } = await getAuthState(token);
-        setAuthState(authState);
-        setEmail(email);
-      }
-    } catch (error) {
-      await signOut();
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
   async function signIn(email: string, password: string) {
     try {
@@ -102,32 +67,75 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         signal: controller.signal,
         body: { email, password: hashedPassword },
       });
-      console.log("response", response);
 
-      if (Platform.OS === "ios") {
-        if (!response.success || !response.data.accessToken) {
-          throw new Error("Invalid response format");
-        }
-        const { accessToken } = response.data;
-        await SecureStore.setItemAsync("auth_token", accessToken);
-        const { authState, email } = await getAuthState(accessToken);
+      if (response.success && response.data.cookies.tokens) {
+        const { tokens } = response.data.cookies;
+        await Promise.all([
+          SecureStore.setItemAsync(ACCESS_TOKEN_KEY, tokens.accessToken),
+          SecureStore.setItemAsync(REFRESH_TOKEN_KEY, tokens.refreshToken),
+        ]);
+        const { authScope, email } = await getAuthScope(tokens.accessToken);
         setEmail(email);
-        setAuthState(authState);
+        setAuthScope(authScope);
+      } else {
+        if (!response.success) throw new Error(response.message);
+        else throw new Error("Error signing in, contact administrator"); // @dev REALLY should not happen, indicates mobile headers not being used
       }
     } catch (error) {
       throw new Error(`Error signing in: ${error instanceof Error ? error.message : "Unknown error"}`);
     }
   }
 
-  async function signOut() {
+  const signOut: SignOutFunction = async (args = { force: false }) => {
     // @dev should toast something?
-    setAuthState(AuthState.SignedOut);
-    await SecureStore.deleteItemAsync("auth_token");
-  }
-  apiClient.registerSignOut(signOut);
+    try {
+      if (!args.force) {
+        const res = await apiClient.post({ endpointName: "LOGOUT", signal: controller.signal, body: {} });
+        if (!res.success) console.error(res.message);
+      }
+      setAuthScope(null);
+      await Promise.all([
+        SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
+        SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
+      ]);
+    } catch (e) {
+      if (isAxiosError(e)) {
+        console.error(e.message);
+      }
+    }
+  };
+
+  useEffect(() => {
+    if (manualSignIn) setAuthScope("admin");
+    else setAuthScope(null);
+  }, [manualSignIn]);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        // performs initial access token refresh
+        await apiClient.init(signOut);
+        const token = await SecureStore.getItemAsync(ACCESS_TOKEN_KEY);
+        if (!token) {
+          setAuthScope(null);
+          return;
+        }
+        const { authScope, email } = await getAuthScope(token);
+        setAuthScope(authScope);
+        setEmail(email);
+      } catch (error) {
+        await signOut();
+      } finally {
+        setIsLoading(false);
+      }
+    })();
+    return () => controller.abort();
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ signIn, signOut, isLoading, authState, email, manualSignIn, setManualSignIn }}>
+    <AuthContext.Provider
+      value={{ signIn, signOut, isLoading, authScope, setAuthScope, email, manualSignIn, setManualSignIn }}
+    >
       {children}
     </AuthContext.Provider>
   );

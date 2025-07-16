@@ -58,7 +58,7 @@ database_id = "<YOUR-PREVIEW-DB-ID>"
 
 [env.preview.vars]
 ENVIRONMENT = "preview"
-LOG_LEVEL = "silent"
+EMAIL_VERIFICATION_CODE_LIMIT = 3
 
 [[env.preview.kv_namespaces]]
 binding = "KV"
@@ -94,3 +94,4 @@ id = "<YOUR-PROD-KV-ID>"
 
 [env.prod.vars]
 ENVIRONMENT = "prod"
+EMAIL_VERIFICATION_CODE_LIMIT = 3

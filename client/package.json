@@ -6,13 +6,7 @@
   "scripts": {
     "start": "expo start",
     "ios": "expo run:ios",
-    "web": "expo start --web",
-    "build:dev": "eas build --platform ios --profile development",
-    "build:dev:local": "eas build --platform ios --profile development --local",
-    "version:patch": "npm version patch -m \"Bump version to %s\"",
-    "version:minor": "npm version minor -m \"Bump version to %s\"",
-    "version:major": "npm version major -m \"Bump version to %s\"",
-    "android": "expo run:android"
+    "build:dev": "eas build --platform ios --profile development"
   },
   "dependencies": {
     "@aws-crypto/sha256-js": "^5.2.0",
@@ -22,6 +16,7 @@
     "@react-navigation/bottom-tabs": "^7.2.0",
     "@react-navigation/native": "^7.0.14",
     "@types/json-stable-stringify": "^1.1.0",
+    "axios": "^1.10.0",
     "expo": "~52.0.46",
     "expo-application": "~6.0.2",
     "expo-blur": "~14.0.3",

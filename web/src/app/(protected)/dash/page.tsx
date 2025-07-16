@@ -42,7 +42,7 @@ export default function DashPage() {
       const res = await apiClient.post("DELETE_ACCOUNT", abortController.signal, {});
       if (res.success) {
         Toast.success(res.message);
-        signOut();
+        await signOut();
       } else Toast.error(res.message);
     }
   };

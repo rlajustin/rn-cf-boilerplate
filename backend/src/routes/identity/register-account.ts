@@ -1,8 +1,11 @@
-import { typeConfig, errorConfig } from "@configs";
+import { setCookie } from "hono/cookie";
+import { env } from "hono/adapter";
+import { errorConfig } from "@configs";
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/d1";
-import { emailService } from "@services";
+import { authUtil } from "@utils";
+import { jwtService, emailService } from "@services";
 import * as bcrypt from "bcryptjs";
 import { HandlerFunction, Route } from "@routes/utils";
 import { EmailValidator } from "@utils/email-validator";
@@ -45,10 +48,60 @@ const postRegisterAccount: HandlerFunction<"REGISTER_ACCOUNT"> = async (c, dto) 
 
   await emailService.handleSendEmailVerificationCode(c, newUser.email, newUser.userId);
 
-  return {
-    success: true,
-    message: "Email verification code sent successfully",
-  };
+  const { refreshToken, refreshTokenExpires } = await authUtil.generateAndStoreRefreshToken(db, newUser.userId);
+
+  const accessToken = await authUtil.generateAccessToken(c, newUser);
+  const expiration = jwtService.getTokenExpiration(accessToken);
+
+  if (authUtil.isMobile(c)) {
+    return {
+      success: true,
+      data: {
+        cookies: {
+          tokens: {
+            accessToken,
+            refreshToken,
+          },
+          exp: {
+            accessToken: expiration,
+            refreshToken: refreshTokenExpires,
+          },
+        },
+        scope: "unverified",
+        expires: expiration,
+      },
+    };
+  } else {
+    const origin = c.req.header("Origin");
+    // For web clients, set HTTP-only cookies
+    setCookie(c, authUtil.ACCESS_COOKIE_NAME, accessToken, {
+      httpOnly: true,
+      secure: origin?.includes("localhost") && env(c).ENVIRONMENT !== "prod" ? false : true,
+      sameSite: "Lax",
+      path: "/",
+      maxAge: expiration - Date.now(),
+    });
+    setCookie(c, authUtil.REFRESH_COOKIE_NAME, refreshToken, {
+      httpOnly: true,
+      secure: origin?.includes("localhost") && env(c).ENVIRONMENT !== "prod" ? false : true,
+      sameSite: "Lax",
+      path: "/api/refresh",
+      maxAge: 60 * 60 * 24 * 400, // 400 days
+    });
+
+    return {
+      success: true,
+      data: {
+        scope: "unverified",
+        cookies: {
+          exp: {
+            accessToken: expiration,
+            refreshToken: refreshTokenExpires,
+          },
+        },
+      },
+    };
+  }
 };
 
 export const RegisterAccountRoute: Route<"REGISTER_ACCOUNT"> = {

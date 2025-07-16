@@ -10,7 +10,11 @@ const postDeleteAccount: HandlerFunction<"DELETE_ACCOUNT"> = async (c, dto) => {
   const db = drizzle(env(c).DB, { schema });
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
 
-  const deletedUser = await db.delete(schema.users).where(eq(schema.users.userId, authenticatedUser.sub)).returning();
+  const [deletedUser] = await db
+    .delete(schema.users)
+    .where(eq(schema.users.userId, authenticatedUser.sub))
+    .limit(1)
+    .returning();
   if (!deletedUser)
     return {
       success: false,
