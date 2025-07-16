@@ -3,12 +3,12 @@
 layout: home
 
 hero:
-  name: "Full-Stack iOS Boilerplate"
-  text: "Flexible, accessible, vibe-friendly"
+  name: "Full-Stack iOS App Template"
+  text: "Flexible, safe, and accessible boilerplate"
   tagline: "React Native + Cloudflare • Build fast, scale smart"
   image:
     src: "assets/logo.png"
-    alt: RN/CF IOS Boilerplate
+    alt: RN/CF iOS Boilerplate
   actions:
     - theme: brand
       text: Get Started
@@ -21,7 +21,7 @@ features:
   - title: 🚀 Build from day one
     details: Jump straight into building features—no complicated infrastructure setup required. Security is built in from the start, so you can develop with confidence.
   - title: ⚡ Ready to scale
-    details: Fully functional out-of-the-box, but not tied down to specific service providers. Options to upgrade or self-host depending on your budget and scaling needs.
+    details: Fully functional out of the box, but not tied to specific service providers. Options to upgrade or self-host depending on your budget and scaling needs.
   - title: 🔧 Simple developer experience
     details: |
       Understandable by entry-level developers.<br>

@@ -1,13 +1,13 @@
 # Troubleshooting
 
-You can feel free to send me an email (which you can find if you do a bit of digging). I can't promise to be super involved with resolving issues, but at the very least I might be able to point you in the right direction if it's something I've encountered before.
+Feel free to send me an email (you can find it if you do a bit of digging). I can’t promise to be super involved with resolving issues, but I might be able to point you in the right direction if it’s something I’ve encountered before.
 
 ## Read the docs!
 
-For me, the most helpful resources (for the iOS client portion) were **documentation** and **github issues**. You don't need to fully understand what you read, but often it'll give you a better direction rather than blindly using AI.
+For me, the most helpful resources (for the iOS client) were **documentation** and **GitHub issues**. You don’t need to fully understand everything you read, but it’ll often give you better direction than blindly using AI.
 
-In particular, AI is pretty awful at assessing the Expo app's errors. I would say that 90% of the confusing issues were due to a mismatch between the native modules their corresponding JS parts. Make use of the `npm ls <>` commands and `npm dedupe`. This problem is particularly annoying with the EAS build process.
+In particular, AI is pretty bad at diagnosing Expo app errors. I’d say 90% of confusing issues are due to a mismatch between native modules and their corresponding JS parts. Use `npm ls <>` and `npm dedupe` to help resolve these. This problem is especially annoying with the EAS build process.
 
-## AI often will struggle
+## AI will often struggle
 
-It's important to know that **AI has a poor understanding of React Native**, and you will inevitably encounter bugs that it simply cannot solve due to the limited documentation available.
+It’s important to know that **AI has a poor understanding of React Native**, and you’ll inevitably encounter bugs it simply can’t solve due to limited documentation.
