@@ -3,7 +3,10 @@ main = "src/index.ts"
 compatibility_date = "2025-04-01"
 compatibility_flags = ["nodejs_compat"]
 
-##### LOCAL
+[[hyperdrive]]
+binding = "HYPERDRIVE"
+id = "<YOUR-HYPERDRIVE-ID>"
+localConnectionString = "<YOUR-HYPERDRIVE-CONNECTION-STRING>" # (same as what you used to generate hyperdrive
 
 [[unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
@@ -18,20 +21,13 @@ namespace_id = "1002"
 simple = { limit = 15, period = 10 }
 
 [vars]
-ENVIRONMENT = "local"
-EMAIL_VERIFICATION_CODE_LIMIT = 3 # number of times in 24hrs that an verification email can be sent (due to mail sender limits), change this to whatever is appropriate
-
-[[d1_databases]]
-binding = "DB"
-# These db names should match up with what's in backend/package.json
-database_name = "<YOUR-APP-NAME>-db-local"
-database_id = "asdf"
+LOG_LEVEL = "error"
 
 [[kv_namespaces]]
 binding = "KV"
 id = ""
 
-##### PREVIEW
+###### PREVIEW
 
 [[env.preview.unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
@@ -47,14 +43,7 @@ simple = { limit = 15, period = 10 }
 
 [env.preview]
 name = "<YOUR-PREVIEW-API-NAME>"
-# Optionally assign custom domain, I believe cloudflare handles the hosting automatically (assuming your cloudflare account owns the domain)
-# routes = [{ pattern = "<YOUR-DOMAIN>", custom_domain = true }]
-
-[[env.preview.d1_databases]]
-binding = "DB"
-# These db names should match up with what's in backend/package.json
-database_name = "<YOUR-APP-NAME>-db-preview"
-database_id = "<YOUR-PREVIEW-DB-ID>"
+routes = [{ pattern = "<YOUR-PREVIEW-API-URL>", custom_domain = true }]
 
 [env.preview.vars]
 ENVIRONMENT = "preview"
@@ -64,7 +53,7 @@ EMAIL_VERIFICATION_CODE_LIMIT = 3
 binding = "KV"
 id = "<YOUR-PREVIEW-KV-ID>"
 
-##### PROD
+###### PROD
 
 [[env.prod.unsafe.bindings]]
 name = "AUTHED_RATE_LIMITER"
@@ -80,13 +69,7 @@ simple = { limit = 15, period = 10 }
 
 [env.prod]
 name = "<YOUR-PROD-API-NAME>"
-# routes = [{ pattern = "<YOUR-PROD-API-URL>", custom_domain = true }]
-
-[[env.prod.d1_databases]]
-binding = "DB"
-# These db names should match up with what's in backend/package.json
-database_name = "<YOUR-APP-NAME>-db"
-database_id = "<YOUR-PROD-DB-ID>"
+routes = [{ pattern = "<YOUR-PROD-API-URL>", custom_domain = true }]
 
 [[env.prod.kv_namespaces]]
 binding = "KV"

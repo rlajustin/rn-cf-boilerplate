@@ -1,21 +1,19 @@
 ### .dev.vars ###
 
-### SMTP_SERVER in Brevo
+ENVIRONMENT=local
+
 SMTP_HOST=
-
-SMTP_PORT=
-### SMTP_LOGIN in Brevo
+SMTP_PORT=587
 SMTP_USER=
-
-### SMTP key value in Brevo
 SMTP_PASSWORD=
-
 SMTP_SENDER_ADDRESS=
-
-### Can be anything
 SMTP_SENDER_NAME=
 
 APP_BUNDLE_ID=
 TEAM_ID=
 
+EMAIL_VERIFICATION_CODE_LIMIT=3
+
 JWT_SECRET=
+
+DB_CONNECTION_STRING=postgresql://[user]:[password]@[ip]/[db-name]?sslmode=require
