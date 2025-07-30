@@ -3,13 +3,12 @@ import { env } from "hono/adapter";
 import * as schema from "@schema";
 import { jwtService } from "@services";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import * as bcrypt from "bcryptjs";
 import { HandlerFunction, Route } from "@routes/utils";
 import { authUtil } from "@utils";
 
 const postLogin: HandlerFunction<"LOGIN"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema });
+  const db = c.get("db");
 
   const [user]: schema.User[] = await db.select().from(schema.users).where(eq(schema.users.email, dto.email)).limit(1);
 

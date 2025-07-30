@@ -1,19 +1,16 @@
-import { sql } from "drizzle-orm";
-import { sqliteTable, text } from "drizzle-orm/sqlite-core";
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core";
 import { users } from "./user";
 
 // Refresh Tokens Table
-export const refreshTokens = sqliteTable("refresh_tokens", {
+export const refreshTokens = pgTable("refresh_tokens", {
   token: text("token").primaryKey(), // Store a hashed token for security
   userId: text("user_id")
     .notNull()
     .references(() => users.userId, { onDelete: "cascade" }),
   // Optionally, add metadata fields
   // summary: text("summary"),
-  createdAt: text("created_at")
-    .notNull()
-    .default(sql`CURRENT_TIMESTAMP`),
-  expiresAt: text("expires_at").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: false }).notNull().defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: false }).notNull(),
 });
 
 export type RefreshToken = typeof refreshTokens.$inferSelect;

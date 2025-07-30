@@ -8,12 +8,26 @@ import { verifyAssertion } from "node-app-attest";
 import stringify from "json-stable-stringify";
 import { AuthScopeType, WeightRange } from "shared/src/types";
 
+import { drizzle } from "drizzle-orm/postgres-js";
+import * as schema from "@schema";
+import postgres from "postgres";
+
 type KeyFunction = (c: Context<typeConfig.Context>) => string;
 
 const baseKeyFunc: KeyFunction = (c) => {
   const ip = requestUtil.getRequestIP(c);
   if (!ip) throw new errorConfig.BadRequest("IP not found");
   return ip;
+};
+
+export const dbMiddleware = async (c: Context<typeConfig.Context>, next: Next) => {
+  const sql = postgres(env(c).HYPERDRIVE.connectionString, {
+    max: 5,
+    fetch_types: false,
+  });
+  c.set("db", drizzle(sql, { schema }));
+  await next();
+  await sql.end();
 };
 
 export const generateMiddleware = (scope: AuthScopeType) => {

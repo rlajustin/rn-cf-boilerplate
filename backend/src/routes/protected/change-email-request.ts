@@ -1,14 +1,13 @@
 import { HandlerFunction, Route } from "@routes/utils";
 import { authUtil } from "@utils";
 import { env } from "hono/adapter";
-import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
 import * as schema from "@schema";
 import { emailService } from "@services";
 
 const postChangeEmailRequest: HandlerFunction<"CHANGE_EMAIL_REQUEST"> = async (c, dto) => {
   // Get the authenticated user's information using helper functions
-  const db = drizzle(env(c).DB, { schema });
+  const db = c.get("db");
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
 
   const [foundUser] = await db.select().from(schema.users).where(eq(schema.users.email, dto.newEmail)).limit(1);

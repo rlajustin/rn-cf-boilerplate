@@ -1,12 +1,11 @@
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import { kvService } from "@services";
 import { HandlerFunction, Route } from "@routes/utils";
 import { authUtil } from "@utils";
 
 const postVerifyEmail: HandlerFunction<"VERIFY_EMAIL"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema: { users: schema.users } });
+  const db = c.get("db");
   const kv = c.env.KV;
   const authenticatedUser = authUtil.getAuthenticatedUser(c);
   const code = await kvService.getEmailVerificationCode(kv, authenticatedUser.sub);

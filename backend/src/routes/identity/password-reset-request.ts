@@ -1,6 +1,5 @@
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import { emailService, jwtService, kvService } from "@services";
 import { HandlerFunction, Route } from "@routes/utils";
 import { EmailValidator } from "@utils/email-validator";
@@ -9,7 +8,7 @@ import { env } from "hono/adapter";
 
 const postPasswordResetRequest: HandlerFunction<"PASSWORD_RESET_REQUEST"> = async (c, dto) => {
   const { KV } = env(c);
-  const db = drizzle(c.env.DB, { schema });
+  const db = c.get("db");
 
   try {
     EmailValidator.validate(dto.email);

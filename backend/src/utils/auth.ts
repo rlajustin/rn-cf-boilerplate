@@ -5,7 +5,6 @@ import { env } from "hono/adapter";
 import { HTTPException } from "hono/http-exception";
 import { cryptoUtil } from "@utils";
 import * as schema from "@schema";
-import { drizzle } from "drizzle-orm/d1";
 import { eq } from "drizzle-orm";
 import { randomBytes } from "crypto";
 import { hashString } from "@utils/crypto";
@@ -46,8 +45,7 @@ export const generateAccessToken = async (c: Context<typeConfig.Context>, user: 
 };
 
 export const refreshAccessToken = async (c: Context<typeConfig.Context>, refreshToken: string): Promise<string> => {
-  const { DB } = env(c);
-  const db = drizzle(DB, { schema });
+  const db = c.get("db");
 
   const hashedToken = cryptoUtil.hashString(refreshToken);
 
@@ -78,7 +76,7 @@ export const refreshAccessToken = async (c: Context<typeConfig.Context>, refresh
  * Generates a secure random refresh token, stores its hash in the DB, and returns the raw token.
  */
 export const generateAndStoreRefreshToken = async (
-  db: ReturnType<typeof import("drizzle-orm/d1").drizzle>,
+  db: typeConfig.DrizzleDB,
   userId: string
 ): Promise<{ refreshToken: string; refreshTokenExpires: number }> => {
   const refreshTokenRaw = randomBytes(64).toString("hex");
@@ -90,7 +88,7 @@ export const generateAndStoreRefreshToken = async (
     .values({
       token: refreshTokenHash,
       userId,
-      expiresAt: new Date(refreshTokenExpires).toISOString(),
+      expiresAt: new Date(refreshTokenExpires),
     })
     .returning();
   if (!res) throw new Error("Failed to generate tokens");

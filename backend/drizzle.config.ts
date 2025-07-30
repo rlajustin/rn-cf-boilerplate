@@ -1,19 +1,16 @@
 import { defineConfig } from "drizzle-kit";
-import { D1Helper } from "@nerdfolio/drizzle-d1-helpers";
+import dotenv from "dotenv";
 
-const helper = D1Helper.get();
+dotenv.config({ path: ".dev.vars" });
+if (!process.env.DB_CONNECTION_STRING) {
+  throw new Error("DB_CONNECTION_STRING is not set in the environment variables.");
+}
 
-export default Number(process.env.LOCAL_DB_STUDIO ?? "0") === 1
-  ? {
-      schema: "./src/schema",
-      dialect: "sqlite",
-      dbCredentials: {
-        url: helper.sqliteLocalFileCredentials.url,
-      },
-    }
-  : defineConfig({
-      schema: "./src/schema",
-      dialect: "sqlite",
-      out: "./migrations",
-      driver: "d1-http",
-    });
+export default defineConfig({
+  schema: "./src/schema",
+  out: "./migrations",
+  dialect: "postgresql",
+  dbCredentials: {
+    url: process.env.DB_CONNECTION_STRING,
+  },
+});

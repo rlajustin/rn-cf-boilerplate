@@ -14,14 +14,6 @@ export default function DashPage() {
 
   const abortController = new AbortController();
 
-  const testExampleEndpoint = async () => {
-    await apiClient.post("EXAMPLE", abortController.signal, {
-      exampleData1: "hi",
-      exampleData2: "justin314kim@gmail.com",
-      exampleData3: 5,
-    });
-  };
-
   const testChangeEmail = async () => {
     setIsLoading(true);
     const res = await apiClient.post("CHANGE_EMAIL_REQUEST", abortController.signal, {
@@ -51,9 +43,6 @@ export default function DashPage() {
   return (
     <div className="flex flex-col justify-center items-center h-full">
       <div>dash page</div>
-      <button className="p-2 border" onClick={() => testExampleEndpoint()}>
-        test
-      </button>
       <input value={newEmail} onChange={(e) => setNewEmail(e.target.value)} />
       <button className="p-2 border" onClick={() => testChangeEmail()} disabled={isLoading}>
         change email

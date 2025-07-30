@@ -3,7 +3,6 @@ import { env } from "hono/adapter";
 import { errorConfig } from "@configs";
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import { authUtil } from "@utils";
 import { jwtService, emailService } from "@services";
 import * as bcrypt from "bcryptjs";
@@ -11,7 +10,7 @@ import { HandlerFunction, Route } from "@routes/utils";
 import { EmailValidator } from "@utils/email-validator";
 
 const postRegisterAccount: HandlerFunction<"REGISTER_ACCOUNT"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema });
+  const db = c.get("db");
 
   try {
     EmailValidator.validate(dto.email);

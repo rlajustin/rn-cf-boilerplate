@@ -1,7 +1,6 @@
 import { HandlerFunction, Route } from "@routes/utils";
 import { authUtil } from "@utils";
 import { env } from "hono/adapter";
-import { drizzle } from "drizzle-orm/d1";
 import { getCookie } from "hono/cookie";
 import { eq } from "drizzle-orm";
 import * as schema from "@schema";
@@ -10,7 +9,7 @@ import { errorConfig } from "@configs";
 
 const postLogout: HandlerFunction<"LOGOUT"> = async (c) => {
   // Get the authenticated user's information using helper functions
-  const db = drizzle(env(c).DB, { schema });
+  const db = c.get("db");
   const refreshToken = getCookie(c, authUtil.REFRESH_COOKIE_NAME);
   if (!refreshToken) {
     throw new errorConfig.BadRequest("Refresh token not found");
@@ -20,7 +19,6 @@ const postLogout: HandlerFunction<"LOGOUT"> = async (c) => {
   const [deletedToken] = await db
     .delete(schema.refreshTokens)
     .where(eq(schema.refreshTokens.token, hashedToken))
-    .limit(1)
     .returning();
 
   if (deletedToken) {

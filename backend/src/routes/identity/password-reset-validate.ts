@@ -1,13 +1,12 @@
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import { HandlerFunction, Route } from "@routes/utils";
 import { env } from "hono/adapter";
 import { cryptoUtil } from "@utils";
 import { jwtService } from "@services";
 
 const getPasswordResetValidate: HandlerFunction<"PASSWORD_RESET_VALIDATE"> = async (c, query) => {
-  const db = drizzle(c.env.DB, { schema });
+  const db = c.get("db");
 
   const { JWT_SECRET } = env(c);
   const token = query["token"];

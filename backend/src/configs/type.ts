@@ -3,6 +3,8 @@ import { Hono } from "hono";
 import { BlankSchema } from "hono/types";
 import { type AccessTokenBody } from "shared";
 
+export type DrizzleDB = ReturnType<typeof import("drizzle-orm/postgres-js").drizzle>;
+
 export type RateLimitBinding = {
   limit: ({ key }: { key: string }) => {
     key: string;
@@ -13,10 +15,10 @@ export type RateLimitBinding = {
 export type { AccessTokenBody };
 
 export type Bindings = {
-  DB: D1Database;
   KV: KVNamespace;
   AUTHED_RATE_LIMITER: RateLimitBinding;
   BASE_RATE_LIMITER: RateLimitBinding;
+  HYPERDRIVE: Hyperdrive;
   ENVIRONMENT: string;
   LOG_LEVEL: string;
   SMTP_HOST: string;
@@ -35,6 +37,7 @@ export type Bindings = {
 export type Context = {
   Bindings: Bindings;
   Variables: {
+    db: DrizzleDB;
     access_token_body?: AccessTokenBody;
   };
 };

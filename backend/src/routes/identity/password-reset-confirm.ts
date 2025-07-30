@@ -1,6 +1,5 @@
 import * as schema from "@schema";
 import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/d1";
 import * as bcrypt from "bcryptjs";
 import { HandlerFunction, Route } from "@routes/utils";
 import { env } from "hono/adapter";
@@ -8,7 +7,7 @@ import { jwtService } from "@services";
 import { cryptoUtil } from "@utils";
 
 const postPasswordResetConfirm: HandlerFunction<"PASSWORD_RESET_CONFIRM"> = async (c, dto) => {
-  const db = drizzle(c.env.DB, { schema });
+  const db = c.get("db");
 
   const { JWT_SECRET } = env(c);
   let payload: Record<string, unknown>;
