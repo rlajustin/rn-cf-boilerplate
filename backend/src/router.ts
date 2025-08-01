@@ -9,6 +9,7 @@ import { typeConfig, errorConfig } from "@configs";
 import { identityRoutes, appAttestRoutes, protectedRoutes, protectedUnverifiedRoutes } from "@routes";
 import { version } from "../package.json";
 import { jwtService } from "@services";
+import { dbMiddleware } from "@middleware";
 
 export const loadRouters = (app: Hono<typeConfig.Context>) => {
   app.use(async (c, next) => {
@@ -59,6 +60,8 @@ export const loadRouters = (app: Hono<typeConfig.Context>) => {
       return c.json(routes);
     });
   }
+
+  app.use("/api/*", dbMiddleware);
 
   app.post("/api/refresh", async (c: Context<typeConfig.Context>) => {
     const refreshToken = getCookie(c, authUtil.REFRESH_COOKIE_NAME);
