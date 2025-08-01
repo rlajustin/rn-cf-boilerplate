@@ -5,7 +5,7 @@
   "license": "MIT",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "wrangler dev --ip 0.0.0.0 --remote",
+    "dev": "wrangler dev --ip 0.0.0.0",
     "preview:update_secrets": "wrangler secret bulk .dev.vars --env preview",
     "prod:update_secrets": "wrangler secret bulk .dev.vars --env prod",
     "generate": "drizzle-kit generate",
